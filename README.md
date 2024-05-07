@@ -14,4 +14,4 @@ This is the server repository for `Taskify web and app versions`
 
 5. If no errors found after running `npm run lint`, run `npm run build` to update dist directory.
 
-6. When done, make a pull request to staging branch.
+6. When done, make a pull request to `staging branch`.
