@@ -1,6 +1,14 @@
 name: Check Code
 
-on: push
+on:
+  push:
+    branches:
+      - staging
+      - main
+  pull_request:
+    branches:
+      - staging
+      - main
 
 jobs:
   check-code:
