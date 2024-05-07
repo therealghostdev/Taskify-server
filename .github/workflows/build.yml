@@ -1,19 +1,64 @@
-name: Build and Lint
+name: Check Code
 
 on: push
 
 jobs:
-  build:
+  check-code:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: npm install
+    - uses: actions/checkout@v3
 
-      - name: Build production
-        run: |
-          npm run build
-          npm run lint
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Check development configuration
+      run: |
+        npm run lint -- --no-eslintrc -c .github/eslint-config.js
+
+    - name: Build project
+      run: npx tsc
+
+    - name: Check dist folder
+      run: |
+        npm run lint:dist -- --no-eslintrc -c .github/eslint-config.js
+
+    - name: Create ESLint config file
+      run: |
+        cat > .github/eslint-config.js <<EOL
+        module.exports = {
+          root: true,
+          parser: "@typescript-eslint/parser",
+          plugins: ["@typescript-eslint"],
+          extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+          rules: {
+            // Add your custom rules here
+          },
+          env: {
+            node: true,
+            es6: true,
+          },
+          globals: {
+            console: "readonly",
+          },
+          overrides: [
+            {
+              files: ["*.ts", "*.tsx"],
+              parserOptions: {
+                project: "./tsconfig.json",
+              },
+            },
+            {
+              files: ["dist/**/*.js"],
+              rules: {
+                "@typescript-eslint/no-var-requires": "off",
+              },
+            },
+          ],
+        };
+        EOL
