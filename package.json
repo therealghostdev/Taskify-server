@@ -1,0 +1,46 @@
+{
+  "name": "taskify-server",
+  "version": "1.0.0",
+  "description": "The go-to solution for efficient task management",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "npm run test",
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DaScOrPiO/Taskify-web.git"
+  },
+  "keywords": [
+    "taskify",
+    "task",
+    "management",
+    "create",
+    "tasks",
+    "organize",
+    "tasks",
+    "tasks"
+  ],
+  "author": "ghost_dev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DaScOrPiO/Taskify-web/issues"
+  },
+  "homepage": "https://github.com/DaScOrPiO/Taskify-web#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "joi": "^17.13.1",
+    "mongoose": "^8.3.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.10",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
