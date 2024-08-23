@@ -15,22 +15,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
+const path_1 = __importDefault(require("path"));
+const envFile = process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
+const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            // use `await mongoose.connect('mongodb://user:password@127.0.0.1:27017/test');` if your database has auth enabled
-            yield mongoose_1.default.connect("mongodb://127.0.0.1:27017/taskify");
+            yield mongoose_1.default.connect(dbUri);
             console.log("Mongoose connection success");
         }
         catch (err) {
-            console.log("seomething went wrong", err);
+            console.error("Something went wrong with the database connection", err);
         }
     });
 }
-main().catch((err) => console.log(err));
+main().catch((err) => console.error(err));
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
