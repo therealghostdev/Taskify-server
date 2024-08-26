@@ -21,8 +21,14 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     }
     return res.status(400).send("missing fields!");
   } catch (err) {
-    console.log(err);
-    next(err);
+    console.error(err);
+
+    if (err instanceof Error) {
+      if ("code" in err && err.code === 11000) {
+        return res.status(409).json({ message: "Username is already taken" });
+      }
+      next(err);
+    }
   }
 };
 

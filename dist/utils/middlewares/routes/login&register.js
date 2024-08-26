@@ -34,8 +34,13 @@ const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         return res.status(400).send("missing fields!");
     }
     catch (err) {
-        console.log(err);
-        next(err);
+        console.error(err);
+        if (err instanceof Error) {
+            if ("code" in err && err.code === 11000) {
+                return res.status(409).json({ message: "Username is already taken" });
+            }
+            next(err);
+        }
     }
 });
 exports.register = register;

@@ -5,6 +5,7 @@ import path from "path";
 import routes from "./routes";
 import initilizePassport from "./config/passport";
 import passport from "passport";
+import ErrorMessage from "./lib/ErrorMessage";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -44,8 +45,8 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use((err: Error, req: Request, res: Response) => {
   console.error(err.stack);
-  res.status(500).json({
-    message: "Something went wrong!",
-    error: err.message,
-  });
+  if (err instanceof ErrorMessage) {
+    return res.status(err.code).json({ message: err.message });
+  }
+  return res.status(500).json({ message: "Something went wrong!" });
 });

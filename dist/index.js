@@ -42,6 +42,7 @@ const path_1 = __importDefault(require("path"));
 const routes_1 = __importDefault(require("./routes"));
 const passport_1 = __importDefault(require("./config/passport"));
 const passport_2 = __importDefault(require("passport"));
+const ErrorMessage_1 = __importDefault(require("./lib/ErrorMessage"));
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
@@ -73,8 +74,8 @@ app.get("/", (req, res) => {
 });
 app.use((err, req, res) => {
     console.error(err.stack);
-    res.status(500).json({
-        message: "Something went wrong!",
-        error: err.message,
-    });
+    if (err instanceof ErrorMessage_1.default) {
+        return res.status(err.code).json({ message: err.message });
+    }
+    return res.status(500).json({ message: "Something went wrong!" });
 });
