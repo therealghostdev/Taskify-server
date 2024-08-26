@@ -1,7 +1,10 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, urlencoded } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
+import routes from "./routes";
+import initilizePassport from "./config/passport";
+import passport from "passport";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -28,6 +31,21 @@ app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
 });
 
+app.use(urlencoded({ extended: true }));
+
+initilizePassport(passport);
+app.use(passport.initialize());
+
+app.use("/", routes);
+
 app.get("/", (req: Request, res: Response) => {
   res.send("Taskify server");
+});
+
+app.use((err: Error, req: Request, res: Response) => {
+  console.error(err.stack);
+  res.status(500).json({
+    message: "Something went wrong!",
+    error: err.message,
+  });
 });
