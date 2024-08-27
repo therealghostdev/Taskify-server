@@ -15,6 +15,15 @@ const envFile =
 dotenv.config({ path: path.resolve(__dirname, "..", envFile) });
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "*", // will be replaced with final frontend url
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 const port = process.env.PORT || 3000;
 const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 
@@ -34,7 +43,6 @@ app.listen(port, () => {
 });
 
 app.use(urlencoded({ extended: true }));
-// app.use(cors)
 
 initilizePassport(passport);
 app.use(passport.initialize());

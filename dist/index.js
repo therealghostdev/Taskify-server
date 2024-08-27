@@ -43,11 +43,17 @@ const routes_1 = __importDefault(require("./routes"));
 const passport_1 = __importDefault(require("./config/passport"));
 const passport_2 = __importDefault(require("passport"));
 const ErrorMessage_1 = __importDefault(require("./lib/ErrorMessage"));
+const cors_1 = __importDefault(require("cors"));
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
+app.use((0, cors_1.default)({
+    origin: "*", // will be replaced with final frontend url
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
 const port = process.env.PORT || 3000;
 const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 function main() {
@@ -66,7 +72,6 @@ app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
 app.use((0, express_1.urlencoded)({ extended: true }));
-// app.use(cors)
 (0, passport_1.default)(passport_2.default);
 app.use(passport_2.default.initialize());
 app.use("/", routes_1.default);
