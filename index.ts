@@ -6,6 +6,7 @@ import routes from "./routes";
 import initilizePassport from "./config/passport";
 import passport from "passport";
 import ErrorMessage from "./lib/ErrorMessage";
+import cors from "cors";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -33,6 +34,7 @@ app.listen(port, () => {
 });
 
 app.use(urlencoded({ extended: true }));
+// app.use(cors)
 
 initilizePassport(passport);
 app.use(passport.initialize());

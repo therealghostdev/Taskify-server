@@ -27,6 +27,7 @@ const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 userName: username,
                 hash: hash.hash,
                 salt: hash.salt,
+                createdAt: Date.now(),
             });
             yield newUser.save();
             return res.status(200).send("registeration successful");
@@ -46,7 +47,18 @@ const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 exports.register = register;
 const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.send("login page");
+        const { username, password } = req.body;
+        const found = yield user_1.default.findOne({ userName: username });
+        if (!found)
+            return res.status(404).json("User not found");
+        const isValidUser = (0, authentication_1.validatePassword)(password, found.hash, found.salt);
+        if (!isValidUser)
+            return res.status(400).json("username or password invalid");
+        const token = (0, authentication_1.issueJWT)(found);
+        console.log(token);
+        return res
+            .status(200)
+            .json({ success: true, token: token.token, expires: token.expires });
     }
     catch (err) {
         next(err);

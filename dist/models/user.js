@@ -30,5 +30,6 @@ const userSchema = new mongoose_1.Schema({
     userName: { type: String, required: true, unique: true },
     hash: { type: String, required: true },
     salt: { type: String, required: true },
+    createdAt: { type: Date, required: true },
 });
 exports.default = mongoose_1.default.model("User", userSchema);

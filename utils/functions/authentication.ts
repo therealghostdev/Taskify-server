@@ -40,4 +40,12 @@ function genPassword(password: string) {
   };
 }
 
-export { issueJWT, genPassword };
+function validatePassword(password: string, hash: string, salt: string) {
+  const verify = crypto
+    .pbkdf2Sync(password, salt, 10000, 64, "sha512")
+    .toString("hex");
+
+  return hash === verify;
+}
+
+export { issueJWT, genPassword, validatePassword };

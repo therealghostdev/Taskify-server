@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { genPassword } from "../../functions/authentication";
+import {
+  genPassword,
+  issueJWT,
+  validatePassword,
+} from "../../functions/authentication";
 import user from "../../../models/user";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
@@ -15,6 +19,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         userName: username,
         hash: hash.hash,
         salt: hash.salt,
+        createdAt: Date.now(),
       });
       await newUser.save();
       return res.status(200).send("registeration successful");
@@ -34,7 +39,22 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    res.send("login page");
+    const { username, password } = req.body;
+    const found = await user.findOne({ userName: username });
+
+    if (!found) return res.status(404).json("User not found");
+
+    const isValidUser = validatePassword(password, found.hash, found.salt);
+
+    if (!isValidUser)
+      return res.status(400).json("username or password invalid");
+
+    const token = issueJWT(found);
+    console.log(token);
+
+    return res
+      .status(200)
+      .json({ success: true, token: token.token, expires: token.expires });
   } catch (err) {
     next(err);
   }

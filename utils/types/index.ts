@@ -1,18 +1,20 @@
 import { Request } from "express";
 import { Algorithm } from "jsonwebtoken";
+import { Types, Document } from "mongoose";
 
-export interface userType {
-  _id?: string;
+export interface userType extends Document {
+  _id?: Types.ObjectId;
   firstName: string;
   lastName: string;
   userName: string;
-  salt?: string;
-  hash?: string;
+  salt: string;
+  hash: string;
+  createdAt?: Date;
 }
 
 export interface passportOptionTypes {
   jwtFromRequest: (req: Request) => string | null;
-  secretOrKey: string | Buffer
+  secretOrKey: string | Buffer;
   algorithms: Algorithm[];
 }
 
@@ -23,5 +25,8 @@ export interface JwtPayloadType {
   [key: string]: unknown;
 }
 
-export type DoneFunctionType = (error: Buffer | null, user?: unknown, info?: unknown) => void;
-
+export type DoneFunctionType = (
+  error: Buffer | null,
+  user?: unknown,
+  info?: unknown
+) => void;

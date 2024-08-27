@@ -66,6 +66,7 @@ app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
 app.use((0, express_1.urlencoded)({ extended: true }));
+// app.use(cors)
 (0, passport_1.default)(passport_2.default);
 app.use(passport_2.default.initialize());
 app.use("/", routes_1.default);
