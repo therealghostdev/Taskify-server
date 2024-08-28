@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.register = void 0;
+exports.googleAuth = exports.login = exports.register = void 0;
 const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -65,3 +65,14 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.login = login;
+const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.status(200).send("GooglAuth success");
+        // const { token } = req.user as any;
+        // res.json({ token });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.googleAuth = googleAuth;

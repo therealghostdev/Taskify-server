@@ -40,10 +40,11 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 const routes_1 = __importDefault(require("./routes"));
-const passport_1 = __importDefault(require("./config/passport"));
-const passport_2 = __importDefault(require("passport"));
+const passportJwt_1 = __importDefault(require("./config/passport/passportJwt"));
+const passport_1 = __importDefault(require("passport"));
 const ErrorMessage_1 = __importDefault(require("./lib/ErrorMessage"));
 const cors_1 = __importDefault(require("cors"));
+require("./config/passport/passportGoogle");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
@@ -72,8 +73,8 @@ app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
 app.use((0, express_1.urlencoded)({ extended: true }));
-(0, passport_1.default)(passport_2.default);
-app.use(passport_2.default.initialize());
+(0, passportJwt_1.default)(passport_1.default);
+app.use(passport_1.default.initialize());
 app.use("/", routes_1.default);
 app.get("/", (req, res) => {
     res.send("Taskify server");

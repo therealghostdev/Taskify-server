@@ -3,10 +3,11 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
 import routes from "./routes";
-import initilizePassport from "./config/passport";
+import initilizePassportJwt from "./config/passport/passportJwt";
 import passport from "passport";
 import ErrorMessage from "./lib/ErrorMessage";
 import cors from "cors";
+import "./config/passport/passportGoogle";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -44,7 +45,7 @@ app.listen(port, () => {
 
 app.use(urlencoded({ extended: true }));
 
-initilizePassport(passport);
+initilizePassportJwt(passport);
 app.use(passport.initialize());
 
 app.use("/", routes);

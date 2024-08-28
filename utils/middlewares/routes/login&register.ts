@@ -60,4 +60,14 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { register, login };
+const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.status(200).send("GooglAuth success");
+    // const { token } = req.user as any;
+    // res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { register, login, googleAuth };
