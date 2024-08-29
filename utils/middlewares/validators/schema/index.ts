@@ -3,10 +3,6 @@ import joi from "joi";
 const validateUserReg = joi.object({
   username: joi
     .string()
-    .pattern(/^(?=.*[0-9])(?=[a-zA-Z]{3,})[a-zA-Z0-9]{3,30}$/)
-    .message(
-      "Username must be 3-30 characters long, start with at least 3 letters, and must include numbers"
-    )
     .required(),
   firstname: joi
     .string()
@@ -34,10 +30,6 @@ const validateUserReg = joi.object({
 const validateUserLogin = joi.object({
   username: joi
     .string()
-    .pattern(/^(?=.*[0-9])(?=[a-zA-Z]{3,})[a-zA-Z0-9]{3,30}$/)
-    .message(
-      "Username must be 3-30 characters long, start with at least 3 letters, and must include numbers"
-    )
     .required(),
   password: joi
     .string()

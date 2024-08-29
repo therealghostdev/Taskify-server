@@ -5,26 +5,55 @@ import {
   validatePassword,
 } from "../../functions/authentication";
 import user from "../../../models/user";
+import { userSession } from "../../types";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { firstname, lastname, username, password } = req.body;
-    const hash = genPassword(password);
 
-    console.log(firstname, lastname, username, hash);
-    if (firstname && lastname && username && password && password !== "") {
+    const { salt, hash } = genPassword(password);
+
+    const existingUser = await user.findOne({ userName: username });
+
+    if (existingUser) {
+      if (
+        existingUser.google_profile &&
+        existingUser.google_profile.length > 0 &&
+        existingUser.hash === "taskify" &&
+        existingUser.salt === "taskify"
+      ) {
+        await user.findOneAndUpdate(
+          { userName: username },
+          {
+            $set: {
+              firstName: firstname,
+              lastName: lastname,
+              hash: hash,
+              salt: salt,
+            },
+          },
+          { new: true }
+        );
+
+        return res
+          .status(200)
+          .json({ message: "User information updated successfully" });
+      } else {
+        return res.status(409).json({ message: "Username is already taken" });
+      }
+    } else {
       const newUser = new user({
         firstName: firstname,
         lastName: lastname,
         userName: username,
-        hash: hash.hash,
-        salt: hash.salt,
+        hash: hash,
+        salt: salt,
         createdAt: Date.now(),
       });
+
       await newUser.save();
-      return res.status(200).send("registeration successful");
+      return res.status(201).json({ message: "User registered successfully" });
     }
-    return res.status(400).send("missing fields!");
   } catch (err) {
     console.error(err);
 
@@ -32,8 +61,8 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
       if ("code" in err && err.code === 11000) {
         return res.status(409).json({ message: "Username is already taken" });
       }
-      next(err);
     }
+    next(err);
   }
 };
 
@@ -49,12 +78,19 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     if (!isValidUser)
       return res.status(400).json("username or password invalid");
 
-    const token = issueJWT(found);
-    console.log(token);
+    const userSession: userSession = {
+      _id: found._id,
+      firstname: found.firstName,
+      lastname: found.lastName,
+      username: found.userName,
+      cssrfToken: { token: "", expires: "" },
+    };
 
-    return res
-      .status(200)
-      .json({ success: true, token: token.token, expires: token.expires });
+    const token = issueJWT(userSession);
+    userSession.cssrfToken.token = token.token;
+    userSession.cssrfToken.expires = token.expires;
+
+    return res.status(200).json({ success: true, userSession });
   } catch (err) {
     next(err);
   }
@@ -62,9 +98,19 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
 const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    res.status(200).send("GooglAuth success");
-    // const { token } = req.user as any;
-    // res.json({ token });
+    const G_user = req.user as userSession | undefined;
+
+    if (!G_user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    console.log(req.user);
+
+    const token = issueJWT(G_user);
+    G_user.cssrfToken = token
+    // G_user.cssrfToken.token = token.expires;
+    console.log(token);
+    res.status(200).json({ success: true, userSession: G_user });
   } catch (err) {
     next(err);
   }

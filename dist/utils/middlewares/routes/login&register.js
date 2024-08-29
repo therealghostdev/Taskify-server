@@ -18,21 +18,41 @@ const user_1 = __importDefault(require("../../../models/user"));
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstname, lastname, username, password } = req.body;
-        const hash = (0, authentication_1.genPassword)(password);
-        console.log(firstname, lastname, username, hash);
-        if (firstname && lastname && username && password && password !== "") {
+        const { salt, hash } = (0, authentication_1.genPassword)(password);
+        const existingUser = yield user_1.default.findOne({ userName: username });
+        if (existingUser) {
+            if (existingUser.google_profile &&
+                existingUser.google_profile.length > 0 &&
+                existingUser.hash === "taskify" &&
+                existingUser.salt === "taskify") {
+                yield user_1.default.findOneAndUpdate({ userName: username }, {
+                    $set: {
+                        firstName: firstname,
+                        lastName: lastname,
+                        hash: hash,
+                        salt: salt,
+                    },
+                }, { new: true });
+                return res
+                    .status(200)
+                    .json({ message: "User information updated successfully" });
+            }
+            else {
+                return res.status(409).json({ message: "Username is already taken" });
+            }
+        }
+        else {
             const newUser = new user_1.default({
                 firstName: firstname,
                 lastName: lastname,
                 userName: username,
-                hash: hash.hash,
-                salt: hash.salt,
+                hash: hash,
+                salt: salt,
                 createdAt: Date.now(),
             });
             yield newUser.save();
-            return res.status(200).send("registeration successful");
+            return res.status(201).json({ message: "User registered successfully" });
         }
-        return res.status(400).send("missing fields!");
     }
     catch (err) {
         console.error(err);
@@ -40,8 +60,8 @@ const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             if ("code" in err && err.code === 11000) {
                 return res.status(409).json({ message: "Username is already taken" });
             }
-            next(err);
         }
+        next(err);
     }
 });
 exports.register = register;
@@ -54,11 +74,17 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         const isValidUser = (0, authentication_1.validatePassword)(password, found.hash, found.salt);
         if (!isValidUser)
             return res.status(400).json("username or password invalid");
-        const token = (0, authentication_1.issueJWT)(found);
-        console.log(token);
-        return res
-            .status(200)
-            .json({ success: true, token: token.token, expires: token.expires });
+        const userSession = {
+            _id: found._id,
+            firstname: found.firstName,
+            lastname: found.lastName,
+            username: found.userName,
+            cssrfToken: { token: "", expires: "" },
+        };
+        const token = (0, authentication_1.issueJWT)(userSession);
+        userSession.cssrfToken.token = token.token;
+        userSession.cssrfToken.expires = token.expires;
+        return res.status(200).json({ success: true, userSession });
     }
     catch (err) {
         next(err);
@@ -67,9 +93,16 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
 exports.login = login;
 const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.status(200).send("GooglAuth success");
-        // const { token } = req.user as any;
-        // res.json({ token });
+        const G_user = req.user;
+        if (!G_user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        console.log(req.user);
+        const token = (0, authentication_1.issueJWT)(G_user);
+        G_user.cssrfToken = token;
+        // G_user.cssrfToken.token = token.expires;
+        console.log(token);
+        res.status(200).json({ success: true, userSession: G_user });
     }
     catch (err) {
         next(err);

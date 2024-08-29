@@ -1,11 +1,11 @@
 import jsonwebtoken from "jsonwebtoken";
-import { userType } from "../types";
+import { userSession } from "../types";
 import dotenv from "dotenv";
 import crypto from "crypto";
 
 dotenv.config();
 
-function issueJWT(user: userType) {
+function issueJWT(user: userSession) {
   const _id = user._id;
 
   const expiresIn = "1d";

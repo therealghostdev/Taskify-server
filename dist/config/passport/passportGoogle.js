@@ -20,18 +20,69 @@ dotenv_1.default.config();
 passport.use(new passport_google_oauth20_1.Strategy({
     clientID: process.env.GOOGLE_CLIENT_ID || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    callbackURL: "http://localhost:3000/auth/google/callback",
-}, function (accessToken, refreshToken, profile, done) {
+    callbackURL: "/taskify/v1/auth/google/callback",
+    passReqToCallback: true,
+}, function (req, accessToken, refreshToken, profile, done) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         try {
-            console.log(`GOOGLE_PROFILE: ${profile}, ACCESS_TOKEN: ${accessToken}`);
-            const foundUser = yield user_1.default.findOne({ googleId: profile.id });
-            console.log(`DB_USER: ${foundUser}`);
-            done(null, profile);
+            let foundUser;
+            const username = req.query.state;
+            console.log(username);
+            if (username && username !== "") {
+                foundUser = yield user_1.default.findOne({ userName: username });
+            }
+            else {
+                foundUser = yield user_1.default.findOne({
+                    "google_profile.id": profile.id,
+                });
+            }
+            if (!foundUser) {
+                const createdUser = new user_1.default({
+                    firstName: ((_a = profile.name) === null || _a === void 0 ? void 0 : _a.givenName) || "",
+                    lastName: ((_b = profile.name) === null || _b === void 0 ? void 0 : _b.familyName) || "",
+                    userName: profile.displayName || `taskify-user-${Date.now()}`,
+                    google_profile: [
+                        {
+                            id: profile.id,
+                            email: ((_d = (_c = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value) || "",
+                            displayName: profile.displayName,
+                            avatar: ((_f = (_e = profile.photos) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.value) || "",
+                        },
+                    ],
+                    salt: "taskify",
+                    hash: "taskify",
+                    createdAt: Date.now(),
+                });
+                yield createdUser.save();
+                return done(null, createdUser);
+            }
+            const updatedGoogleProfile = {
+                id: profile.id,
+                email: ((_h = (_g = profile.emails) === null || _g === void 0 ? void 0 : _g[0]) === null || _h === void 0 ? void 0 : _h.value) || "",
+                displayName: profile.displayName || "",
+                avatar: ((_k = (_j = profile.photos) === null || _j === void 0 ? void 0 : _j[0]) === null || _k === void 0 ? void 0 : _k.value) || "",
+            };
+            const googleProfileIndex = foundUser.google_profile.findIndex((p) => p.id === profile.id);
+            if (googleProfileIndex === -1 ||
+                foundUser.google_profile.length === 0) {
+                foundUser.google_profile.push(updatedGoogleProfile);
+            }
+            const updatedUser = yield user_1.default.findByIdAndUpdate(foundUser._id, { google_profile: foundUser.google_profile }, { new: true });
+            if (!updatedUser) {
+                return done(null, foundUser);
+            }
+            return done(null, updatedUser);
         }
         catch (err) {
             done(err);
         }
     });
 }));
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
 exports.default = passport;

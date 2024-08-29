@@ -45,11 +45,19 @@ const passport_1 = __importDefault(require("passport"));
 const ErrorMessage_1 = __importDefault(require("./lib/ErrorMessage"));
 const cors_1 = __importDefault(require("cors"));
 require("./config/passport/passportGoogle");
+const express_session_1 = __importDefault(require("express-session"));
+const googleAuth_1 = require("./routes/googleAuth");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
+app.use((0, express_session_1.default)({
+    secret: process.env.RSA_PRIVATE_KEY || "",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true, maxAge: 1000 * 60 * 60 },
+}));
 app.use((0, cors_1.default)({
     origin: "*", // will be replaced with final frontend url
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -75,6 +83,8 @@ app.listen(port, () => {
 app.use((0, express_1.urlencoded)({ extended: true }));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
+app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);
 app.use("/", routes_1.default);
 app.get("/", (req, res) => {
     res.send("Taskify server");

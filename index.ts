@@ -8,6 +8,8 @@ import passport from "passport";
 import ErrorMessage from "./lib/ErrorMessage";
 import cors from "cors";
 import "./config/passport/passportGoogle";
+import session from "express-session";
+import { googleAuthRouter } from "./routes/googleAuth";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -16,6 +18,15 @@ const envFile =
 dotenv.config({ path: path.resolve(__dirname, "..", envFile) });
 
 const app = express();
+
+app.use(
+  session({
+    secret: process.env.RSA_PRIVATE_KEY || "",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true, maxAge: 1000 * 60 * 60 },
+  })
+);
 
 app.use(
   cors({
@@ -47,7 +58,9 @@ app.use(urlencoded({ extended: true }));
 
 initilizePassportJwt(passport);
 app.use(passport.initialize());
+app.use(passport.session());
 
+app.use("/taskify/v1/auth", googleAuthRouter);
 app.use("/", routes);
 
 app.get("/", (req: Request, res: Response) => {

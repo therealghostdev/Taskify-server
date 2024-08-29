@@ -7,9 +7,25 @@ export interface userType extends Document {
   firstName: string;
   lastName: string;
   userName: string;
+  googleProfile?: [
+    {
+      id: string;
+      email: string;
+      avatar: string;
+      displayName: string;
+    }
+  ];
   salt: string;
   hash: string;
   createdAt?: Date;
+}
+
+export interface userSession {
+  _id?: Types.ObjectId;
+  firstname: string;
+  lastname: string;
+  username: string;
+  cssrfToken: { token: string; expires: string };
 }
 
 export interface passportOptionTypes {

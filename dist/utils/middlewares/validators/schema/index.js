@@ -8,8 +8,6 @@ const joi_1 = __importDefault(require("joi"));
 const validateUserReg = joi_1.default.object({
     username: joi_1.default
         .string()
-        .pattern(/^(?=.*[0-9])(?=[a-zA-Z]{3,})[a-zA-Z0-9]{3,30}$/)
-        .message("Username must be 3-30 characters long, start with at least 3 letters, and must include numbers")
         .required(),
     firstname: joi_1.default
         .string()
@@ -33,8 +31,6 @@ exports.validateUserReg = validateUserReg;
 const validateUserLogin = joi_1.default.object({
     username: joi_1.default
         .string()
-        .pattern(/^(?=.*[0-9])(?=[a-zA-Z]{3,})[a-zA-Z0-9]{3,30}$/)
-        .message("Username must be 3-30 characters long, start with at least 3 letters, and must include numbers")
         .required(),
     password: joi_1.default
         .string()
