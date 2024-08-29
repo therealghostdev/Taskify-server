@@ -1,9 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
 import passport = require("passport");
 import user from "../../models/user";
+import { userSession } from "../../utils/types";
 
 dotenv.config();
+
+const createUserSession = (user: any): userSession => ({
+  _id: user._id,
+  firstname: user.firstName,
+  lastname: user.lastName,
+  username: user.userName,
+  cssrfToken: { token: "", expires: "" },
+});
 
 passport.use(
   new GoogleStrategy(
@@ -47,7 +57,7 @@ passport.use(
           });
           await createdUser.save();
 
-          return done(null, createdUser);
+          return done(null, createUserSession(createdUser));
         }
 
         const updatedGoogleProfile = {
@@ -75,10 +85,10 @@ passport.use(
         );
 
         if (!updatedUser) {
-          return done(null, foundUser);
+          return done(null, createUserSession(foundUser));
         }
 
-        return done(null, updatedUser);
+        return done(null, createUserSession(updatedUser));
       } catch (err) {
         done(err as Error);
       }
@@ -86,12 +96,15 @@ passport.use(
   )
 );
 
-passport.serializeUser((user, done) => {
-  done(null, user);
+passport.serializeUser((user: any, done) => {
+  // Only store the necessary user session data
+  const sessionUser: userSession = createUserSession(user);
+  done(null, sessionUser);
 });
 
-passport.deserializeUser((user, done) => {
-  done(null, user as Express.User);
+passport.deserializeUser((user: any, done) => {
+  // Pass only the necessary data to req.user
+  done(null, createUserSession(user));
 });
 
 export default passport;
