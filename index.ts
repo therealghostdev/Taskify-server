@@ -10,7 +10,7 @@ import cors from "cors";
 import "./config/passport/passportGoogle";
 import session from "express-session";
 import { googleAuthRouter } from "./routes/googleAuth";
-import "./config/passport/passportApple";
+import "./config/passport/passportApple"
 import { appleAuthRouter } from "./routes/appleAuth";
 
 const envFile =

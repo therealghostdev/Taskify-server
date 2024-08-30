@@ -24,6 +24,7 @@ export interface userType extends Document {
   ];
   salt: string;
   hash: string;
+  refreshToken: { value: string; version: number };
   createdAt?: Date;
 }
 
@@ -32,7 +33,7 @@ export interface userSession {
   firstname: string;
   lastname: string;
   username: string;
-  auth_data: { token: string; expires: string; refreshToken: string };
+  auth_data: { token: string; expires: string; refreshToken: {value: string, version: number} };
 }
 
 export interface passportOptionTypes {

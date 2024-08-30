@@ -3,6 +3,7 @@ import {
   register,
   login,
   refreshToken,
+  validateAuthentication,
 } from "../utils/middlewares/routes/login&register";
 import {
   validateRegisterRequest,
@@ -16,7 +17,7 @@ router.post("/register", validateRegisterRequest, register);
 
 router.post("/login", validateLoginRequest, login);
 
-router.post("/refresh_auth", refreshToken);
+router.post("/refresh_auth", validateAuthentication, refreshToken);
 
 // -----------------------------------------------> End of Authentication Routes <-------------------------------------------------------------------
 

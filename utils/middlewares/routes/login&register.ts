@@ -6,7 +6,10 @@ import {
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { userSession } from "../../types";
-import jsonwebToken from "jsonwebtoken";
+import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -84,12 +87,16 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       firstname: found.firstName,
       lastname: found.lastName,
       username: found.userName,
-      auth_data: { token: "", expires: "", refreshToken: "" },
+      auth_data: {
+        token: "",
+        expires: "",
+        refreshToken: { value: "", version: 0 },
+      },
     };
 
     const token = issueJWT(userSession);
 
-    found.refrehToken = token.refreshToken;
+    found.refreshToken = token.refreshToken;
     await found.save();
 
     userSession.auth_data.token = token.token;
@@ -160,25 +167,89 @@ const refreshToken = async (
       return res.status(401).json("Unauthorized");
     }
 
-    const verifyToken = jsonwebToken.verify(
+    const currentUser = await user.findById(active_user._id);
+
+    if (!currentUser || !currentUser.refreshToken) {
+      return res.status(401).json("Invalid user or no refresh token found");
+    }
+
+    const verifyToken = jsonwebtoken.verify(
       token,
       process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
-    );
+    ) as JwtPayload;
 
     if (!verifyToken) {
       return res.status(400).json("Could not verify token");
     }
 
-    const issuedToken = issueJWT(active_user);
+    const currentVersion = currentUser.refreshToken.version ?? 0;
 
-    await user.findByIdAndUpdate(active_user._id, {
-      refreshToken: issuedToken.refreshToken,
-    });
+    if (verifyToken.version !== currentVersion) {
+      return res.status(403).json("Invalid refresh token");
+    }
 
-    res.status(200).json({ token: issuedToken.token });
+    const newVersion = currentVersion + 1;
+    const payload = {
+      sub: currentUser.id,
+      iat: Date.now(),
+      version: newVersion,
+    };
+    const issuedToken = jsonwebtoken.sign(
+      payload,
+      process.env.RSA_PRIVATE_KEY || "",
+      { expiresIn: "1d", algorithm: "RS256" }
+    );
+
+    const refreshToken = jsonwebtoken.sign(
+      payload,
+      process.env.RSA_PRIVATE_KEY || "",
+      { algorithm: "RS256" }
+    );
+
+    currentUser.refreshToken.value = refreshToken;
+    currentUser.refreshToken.version = newVersion;
+
+    await currentUser.save();
+
+    res.status(200).json({ token: issuedToken });
   } catch (err) {
     next(err);
   }
 };
 
-export { register, login, googleAuth, appleAuth, refreshToken };
+const validateAuthentication = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const headerToken = req.headers["authorization"]?.split(" ")[1];
+
+    if (!headerToken) return res.status(401).json("Unauthorized");
+
+    const verifiedToken = jsonwebtoken.verify(
+      headerToken,
+      process.env.RSA_PRIVATE_KEY || ""
+    ) as JwtPayload;
+
+    if (!verifiedToken) return res.status(403).json("Invalid Token");
+
+    const authenticatedUser = await user.findById(verifiedToken.sub);
+
+    if (!authenticatedUser) return res.status(404).json("User not found");
+
+    req.user = authenticatedUser;
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export {
+  register,
+  login,
+  googleAuth,
+  appleAuth,
+  refreshToken,
+  validateAuthentication,
+};

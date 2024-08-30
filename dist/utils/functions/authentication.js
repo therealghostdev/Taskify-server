@@ -12,10 +12,12 @@ const crypto_1 = __importDefault(require("crypto"));
 dotenv_1.default.config();
 function issueJWT(user) {
     const _id = user._id;
+    const tokenVersion = 0;
     const expiresIn = "1d";
     const payload = {
         sub: _id,
         iat: Date.now(),
+        version: tokenVersion,
     };
     const PRIV_KEY = process.env.RSA_PRIVATE_KEY;
     const signedToken = jsonwebtoken_1.default.sign(payload, PRIV_KEY ? PRIV_KEY : "", {
@@ -26,7 +28,7 @@ function issueJWT(user) {
         algorithm: "RS256",
     });
     return {
-        refreshToken,
+        refreshToken: { value: refreshToken, version: payload.version },
         token: "Bearer " + signedToken,
         expires: expiresIn,
     };
