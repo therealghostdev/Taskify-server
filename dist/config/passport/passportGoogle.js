@@ -23,7 +23,7 @@ const createUserSession = (user) => ({
     firstname: user.firstName,
     lastname: user.lastName,
     username: user.userName,
-    cssrfToken: { token: "", expires: "" },
+    auth_data: { token: "", expires: "" },
 });
 passport.use(new passport_google_oauth20_1.Strategy({
     clientID: process.env.GOOGLE_CLIENT_ID || "",

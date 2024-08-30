@@ -36,6 +36,13 @@ const userSchema = new mongoose_1.Schema({
             displayName: { type: String },
         },
     ],
+    appleProfile: [
+        {
+            id: { type: String },
+            email: { type: String },
+            displayName: { type: String },
+        },
+    ],
     hash: { type: String, required: true },
     salt: { type: String, required: true },
     createdAt: { type: Date, required: true },

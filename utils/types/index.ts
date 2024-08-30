@@ -15,6 +15,13 @@ export interface userType extends Document {
       displayName: string;
     }
   ];
+  appleProfile?: [
+    {
+      id: string;
+      email: string;
+      displayName: string;
+    }
+  ];
   salt: string;
   hash: string;
   createdAt?: Date;
@@ -25,7 +32,7 @@ export interface userSession {
   firstname: string;
   lastname: string;
   username: string;
-  cssrfToken: { token: string; expires: string };
+  auth_data: { token: string; expires: string };
 }
 
 export interface passportOptionTypes {

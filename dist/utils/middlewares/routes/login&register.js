@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.googleAuth = exports.login = exports.register = void 0;
+exports.appleAuth = exports.googleAuth = exports.login = exports.register = void 0;
 const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -79,11 +79,11 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             firstname: found.firstName,
             lastname: found.lastName,
             username: found.userName,
-            cssrfToken: { token: "", expires: "" },
+            auth_data: { token: "", expires: "" },
         };
         const token = (0, authentication_1.issueJWT)(userSession);
-        userSession.cssrfToken.token = token.token;
-        userSession.cssrfToken.expires = token.expires;
+        userSession.auth_data.token = token.token;
+        userSession.auth_data.expires = token.expires;
         return res.status(200).json({ success: true, userSession });
     }
     catch (err) {
@@ -99,9 +99,7 @@ const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         }
         console.log(req.user);
         const token = (0, authentication_1.issueJWT)(G_user);
-        G_user.cssrfToken = token;
-        // G_user.cssrfToken.token = token.expires;
-        console.log(token);
+        G_user.auth_data = token;
         res.status(200).json({ success: true, userSession: G_user });
     }
     catch (err) {
@@ -109,3 +107,19 @@ const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.googleAuth = googleAuth;
+const appleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const apple_user = req.user;
+        if (!apple_user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        console.log(req.user);
+        const token = (0, authentication_1.issueJWT)(apple_user);
+        apple_user.auth_data = token;
+        res.status(200).json({ success: true, userSession: apple_user });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.appleAuth = appleAuth;

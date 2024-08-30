@@ -12,7 +12,7 @@ const createUserSession = (user: any): userSession => ({
   firstname: user.firstName,
   lastname: user.lastName,
   username: user.userName,
-  cssrfToken: { token: "", expires: "" },
+  auth_data: { token: "", expires: "" },
 });
 
 passport.use(

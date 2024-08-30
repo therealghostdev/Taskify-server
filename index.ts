@@ -10,6 +10,8 @@ import cors from "cors";
 import "./config/passport/passportGoogle";
 import session from "express-session";
 import { googleAuthRouter } from "./routes/googleAuth";
+import "./config/passport/passportApple";
+import { appleAuthRouter } from "./routes/appleAuth";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -60,6 +62,7 @@ initilizePassportJwt(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use("/taskify/v1/auth", appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuthRouter);
 app.use("/", routes);
 

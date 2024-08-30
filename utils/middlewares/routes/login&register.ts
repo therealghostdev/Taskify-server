@@ -83,12 +83,12 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       firstname: found.firstName,
       lastname: found.lastName,
       username: found.userName,
-      cssrfToken: { token: "", expires: "" },
+      auth_data: { token: "", expires: "" },
     };
 
     const token = issueJWT(userSession);
-    userSession.cssrfToken.token = token.token;
-    userSession.cssrfToken.expires = token.expires;
+    userSession.auth_data.token = token.token;
+    userSession.auth_data.expires = token.expires;
 
     return res.status(200).json({ success: true, userSession });
   } catch (err) {
@@ -107,13 +107,29 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     console.log(req.user);
 
     const token = issueJWT(G_user);
-    G_user.cssrfToken = token
-    // G_user.cssrfToken.token = token.expires;
-    console.log(token);
+    G_user.auth_data = token;
     res.status(200).json({ success: true, userSession: G_user });
   } catch (err) {
     next(err);
   }
 };
 
-export { register, login, googleAuth };
+const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const apple_user = req.user as userSession | undefined;
+
+    if (!apple_user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    console.log(req.user);
+
+    const token = issueJWT(apple_user);
+    apple_user.auth_data = token;
+    res.status(200).json({ success: true, userSession: apple_user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { register, login, googleAuth, appleAuth };
