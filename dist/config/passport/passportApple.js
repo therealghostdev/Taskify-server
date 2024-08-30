@@ -23,7 +23,7 @@ const createUserSession = (user) => ({
     firstname: user.firstName,
     lastname: user.lastName,
     username: user.userName,
-    auth_data: { token: "", expires: "" },
+    auth_data: { token: "", expires: "", refreshToken: "" },
 });
 // Apple Strategy Configuration
 passport_1.default.use(new passport_apple_1.default({

@@ -22,7 +22,11 @@ function issueJWT(user) {
         expiresIn: expiresIn,
         algorithm: "RS256",
     });
+    const refreshToken = jsonwebtoken_1.default.sign(payload, PRIV_KEY ? PRIV_KEY : "", {
+        algorithm: "RS256",
+    });
     return {
+        refreshToken,
         token: "Bearer " + signedToken,
         expires: expiresIn,
     };

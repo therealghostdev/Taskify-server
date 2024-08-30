@@ -1,5 +1,9 @@
 import express from "express";
-import { register, login } from "../utils/middlewares/routes/login&register";
+import {
+  register,
+  login,
+  refreshToken,
+} from "../utils/middlewares/routes/login&register";
 import {
   validateRegisterRequest,
   validateLoginRequest,
@@ -11,6 +15,8 @@ const router = express.Router();
 router.post("/register", validateRegisterRequest, register);
 
 router.post("/login", validateLoginRequest, login);
+
+router.post("/refresh_auth", refreshToken);
 
 // -----------------------------------------------> End of Authentication Routes <-------------------------------------------------------------------
 

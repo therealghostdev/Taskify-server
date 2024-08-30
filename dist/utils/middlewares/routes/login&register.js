@@ -12,9 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.appleAuth = exports.googleAuth = exports.login = exports.register = void 0;
+exports.refreshToken = exports.appleAuth = exports.googleAuth = exports.login = exports.register = void 0;
 const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstname, lastname, username, password } = req.body;
@@ -79,11 +80,14 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
             firstname: found.firstName,
             lastname: found.lastName,
             username: found.userName,
-            auth_data: { token: "", expires: "" },
+            auth_data: { token: "", expires: "", refreshToken: "" },
         };
         const token = (0, authentication_1.issueJWT)(userSession);
+        found.refrehToken = token.refreshToken;
+        yield found.save();
         userSession.auth_data.token = token.token;
         userSession.auth_data.expires = token.expires;
+        userSession.auth_data.refreshToken = token.refreshToken;
         return res.status(200).json({ success: true, userSession });
     }
     catch (err) {
@@ -97,7 +101,9 @@ const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         if (!G_user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        console.log(req.user);
+        yield user_1.default.findByIdAndUpdate(G_user._id, {
+            refrehToken: G_user.auth_data.refreshToken,
+        });
         const token = (0, authentication_1.issueJWT)(G_user);
         G_user.auth_data = token;
         res.status(200).json({ success: true, userSession: G_user });
@@ -113,7 +119,9 @@ const appleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         if (!apple_user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        console.log(req.user);
+        yield user_1.default.findByIdAndUpdate(apple_user._id, {
+            refrehToken: apple_user.auth_data.refreshToken,
+        });
         const token = (0, authentication_1.issueJWT)(apple_user);
         apple_user.auth_data = token;
         res.status(200).json({ success: true, userSession: apple_user });
@@ -123,3 +131,28 @@ const appleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.appleAuth = appleAuth;
+const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { token } = req.body;
+        if (!token) {
+            return res.status(400).json("Token not provided or empty");
+        }
+        const active_user = req.user;
+        if (!active_user) {
+            return res.status(401).json("Unauthorized");
+        }
+        const verifyToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_PRIVATE_KEY || "");
+        if (!verifyToken) {
+            return res.status(400).json("Could not verify token");
+        }
+        const issuedToken = (0, authentication_1.issueJWT)(active_user);
+        yield user_1.default.findByIdAndUpdate(active_user._id, {
+            refreshToken: issuedToken.refreshToken,
+        });
+        res.status(200).json({ token: issuedToken.token });
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.refreshToken = refreshToken;

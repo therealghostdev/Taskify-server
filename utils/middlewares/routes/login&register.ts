@@ -6,6 +6,7 @@ import {
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { userSession } from "../../types";
+import jsonwebToken from "jsonwebtoken";
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -83,12 +84,17 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       firstname: found.firstName,
       lastname: found.lastName,
       username: found.userName,
-      auth_data: { token: "", expires: "" },
+      auth_data: { token: "", expires: "", refreshToken: "" },
     };
 
     const token = issueJWT(userSession);
+
+    found.refrehToken = token.refreshToken;
+    await found.save();
+
     userSession.auth_data.token = token.token;
     userSession.auth_data.expires = token.expires;
+    userSession.auth_data.refreshToken = token.refreshToken;
 
     return res.status(200).json({ success: true, userSession });
   } catch (err) {
@@ -104,7 +110,9 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log(req.user);
+    await user.findByIdAndUpdate(G_user._id, {
+      refrehToken: G_user.auth_data.refreshToken,
+    });
 
     const token = issueJWT(G_user);
     G_user.auth_data = token;
@@ -122,7 +130,9 @@ const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log(req.user);
+    await user.findByIdAndUpdate(apple_user._id, {
+      refrehToken: apple_user.auth_data.refreshToken,
+    });
 
     const token = issueJWT(apple_user);
     apple_user.auth_data = token;
@@ -132,4 +142,43 @@ const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { register, login, googleAuth, appleAuth };
+const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json("Token not provided or empty");
+    }
+
+    const active_user = req.user as userSession;
+
+    if (!active_user) {
+      return res.status(401).json("Unauthorized");
+    }
+
+    const verifyToken = jsonwebToken.verify(
+      token,
+      process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
+    );
+
+    if (!verifyToken) {
+      return res.status(400).json("Could not verify token");
+    }
+
+    const issuedToken = issueJWT(active_user);
+
+    await user.findByIdAndUpdate(active_user._id, {
+      refreshToken: issuedToken.refreshToken,
+    });
+
+    res.status(200).json({ token: issuedToken.token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { register, login, googleAuth, appleAuth, refreshToken };

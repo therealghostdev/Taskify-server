@@ -10,5 +10,6 @@ const router = express_1.default.Router();
 // ----------------------------------------------> Authentication Routes <-------------------------------------------------------------------------
 router.post("/register", functions_1.validateRegisterRequest, login_register_1.register);
 router.post("/login", functions_1.validateLoginRequest, login_register_1.login);
+router.post("/refresh_auth", login_register_1.refreshToken);
 // -----------------------------------------------> End of Authentication Routes <-------------------------------------------------------------------
 exports.default = router;

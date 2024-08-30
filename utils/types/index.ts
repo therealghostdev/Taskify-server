@@ -32,7 +32,7 @@ export interface userSession {
   firstname: string;
   lastname: string;
   username: string;
-  auth_data: { token: string; expires: string };
+  auth_data: { token: string; expires: string; refreshToken: string };
 }
 
 export interface passportOptionTypes {

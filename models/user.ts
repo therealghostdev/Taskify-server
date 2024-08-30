@@ -21,6 +21,7 @@ const userSchema = new Schema({
   ],
   hash: { type: String, required: true },
   salt: { type: String, required: true },
+  refrehToken: { type: String },
   createdAt: { type: Date, required: true },
 });
 

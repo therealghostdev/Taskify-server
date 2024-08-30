@@ -45,6 +45,7 @@ const userSchema = new mongoose_1.Schema({
     ],
     hash: { type: String, required: true },
     salt: { type: String, required: true },
+    refrehToken: { type: String },
     createdAt: { type: Date, required: true },
 });
 exports.default = mongoose_1.default.model("User", userSchema);
