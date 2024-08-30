@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateAuthentication = exports.refreshToken = exports.appleAuth = exports.googleAuth = exports.login = exports.register = void 0;
+exports.logout = exports.validateAuthentication = exports.refreshToken = exports.appleAuth = exports.googleAuth = exports.login = exports.register = void 0;
 const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -198,3 +198,28 @@ const validateAuthentication = (req, res, next) => __awaiter(void 0, void 0, voi
     }
 });
 exports.validateAuthentication = validateAuthentication;
+const logout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const active_user = req.user;
+        yield user_1.default.findByIdAndUpdate(active_user._id, {
+            $unset: { refreshToken: 1 },
+        });
+        req.user = undefined;
+        if (req.session) {
+            req.session.destroy((err) => {
+                if (err) {
+                    return next(err);
+                }
+                res.clearCookie("connect.sid");
+                res.status(200).json({ message: "Logged out successfully" });
+            });
+        }
+        else {
+            res.status(200).json({ message: "Logged out successfully" });
+        }
+    }
+    catch (err) {
+        next(err);
+    }
+});
+exports.logout = logout;

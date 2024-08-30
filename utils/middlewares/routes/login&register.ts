@@ -245,6 +245,32 @@ const validateAuthentication = async (
   }
 };
 
+const logout = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const active_user = req.user as userSession;
+
+    await user.findByIdAndUpdate(active_user._id, {
+      $unset: { refreshToken: 1 },
+    });
+
+    req.user = undefined;
+
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          return next(err);
+        }
+        res.clearCookie("connect.sid");
+        res.status(200).json({ message: "Logged out successfully" });
+      });
+    } else {
+      res.status(200).json({ message: "Logged out successfully" });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 export {
   register,
   login,
@@ -252,4 +278,5 @@ export {
   appleAuth,
   refreshToken,
   validateAuthentication,
+  logout,
 };
