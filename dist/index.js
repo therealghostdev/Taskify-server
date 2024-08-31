@@ -49,6 +49,7 @@ const express_session_1 = __importDefault(require("express-session"));
 const googleAuth_1 = require("./routes/googleAuth");
 require("./config/passport/passportApple");
 const appleAuth_1 = require("./routes/appleAuth");
+const client_1 = require("./config/redis/client");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
@@ -82,6 +83,7 @@ main().catch((err) => console.error(err));
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
+(0, client_1.startRedis)().catch((err) => console.log(err));
 app.use((0, express_1.urlencoded)({ extended: true }));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());

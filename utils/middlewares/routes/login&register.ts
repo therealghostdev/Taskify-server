@@ -3,11 +3,13 @@ import {
   genPassword,
   issueJWT,
   validatePassword,
+  blacklistToken,
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { userSession } from "../../types";
 import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
+import { redis } from "../../../config/redis/client";
 
 dotenv.config();
 
@@ -113,16 +115,21 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const G_user = req.user as userSession | undefined;
 
+    const found = await user.findOne({ userName: G_user?.username });
+
     if (!G_user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    await user.findByIdAndUpdate(G_user._id, {
-      refrehToken: G_user.auth_data.refreshToken,
-    });
+    if (!found) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const token = issueJWT(G_user);
     G_user.auth_data = token;
+
+    found.refreshToken = token.refreshToken;
+    await found.save();
     res.status(200).json({ success: true, userSession: G_user });
   } catch (err) {
     next(err);
@@ -133,16 +140,21 @@ const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const apple_user = req.user as userSession | undefined;
 
+    const found = await user.findOne({ userName: apple_user });
+
     if (!apple_user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    await user.findByIdAndUpdate(apple_user._id, {
-      refrehToken: apple_user.auth_data.refreshToken,
-    });
+    if (!found) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const token = issueJWT(apple_user);
     apple_user.auth_data = token;
+
+    found.refreshToken = token.refreshToken;
+    await found.save();
     res.status(200).json({ success: true, userSession: apple_user });
   } catch (err) {
     next(err);
@@ -158,7 +170,7 @@ const refreshToken = async (
     const { token } = req.body;
 
     if (!token) {
-      return res.status(400).json("Token not provided or empty");
+      return res.status(400).json({ message: "Token not provided or empty" });
     }
 
     const active_user = req.user as userSession;
@@ -168,10 +180,24 @@ const refreshToken = async (
     }
 
     const currentUser = await user.findById(active_user._id);
+    const currentUserToken = currentUser?.refreshToken?.value;
 
     if (!currentUser || !currentUser.refreshToken) {
-      return res.status(401).json("Invalid user or no refresh token found");
+      return res
+        .status(401)
+        .json({ message: "Invalid user or no refresh token found" });
     }
+
+    const isblacklisted = await redis.get(`blacklist_${token}`);
+
+    const isblacklisted_current_token = await redis.get(
+      `blacklist_${currentUserToken}`
+    );
+
+    if (isblacklisted || isblacklisted_current_token)
+      return res
+        .status(401)
+        .json({ message: "Token provided or refreshToken is invalid" });
 
     const verifyToken = jsonwebtoken.verify(
       token,
@@ -179,19 +205,26 @@ const refreshToken = async (
     ) as JwtPayload;
 
     if (!verifyToken) {
-      return res.status(400).json("Could not verify token");
+      return res.status(400).json({ message: "Could not verify token" });
     }
 
     const currentVersion = currentUser.refreshToken.version ?? 0;
 
     if (verifyToken.version !== currentVersion) {
-      return res.status(403).json("Invalid refresh token");
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    if (currentUserToken) {
+      const expiry = Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await blacklistToken(currentUserToken, expiry);
+      await blacklistToken(token, expiry);
+      console.log("token blacklisted");
     }
 
     const newVersion = currentVersion + 1;
     const payload = {
       sub: currentUser.id,
-      iat: Date.now(),
+      iat: Date.now() / 1000,
       version: newVersion,
     };
     const issuedToken = jsonwebtoken.sign(
@@ -225,18 +258,25 @@ const validateAuthentication = async (
   try {
     const headerToken = req.headers["authorization"]?.split(" ")[1];
 
-    if (!headerToken) return res.status(401).json("Unauthorized");
+    if (!headerToken) return res.status(401).json({ message: "unauthorized" });
+
+    const isblacklisted = await redis.get(`blacklist_${headerToken}`);
+
+    if (isblacklisted)
+      return res.status(401).json({ message: "Token is no longer valid" });
 
     const verifiedToken = jsonwebtoken.verify(
       headerToken,
       process.env.RSA_PRIVATE_KEY || ""
     ) as JwtPayload;
 
-    if (!verifiedToken) return res.status(403).json("Invalid Token");
+    if (!verifiedToken)
+      return res.status(403).json({ message: "Invalid Token" });
 
     const authenticatedUser = await user.findById(verifiedToken.sub);
 
-    if (!authenticatedUser) return res.status(404).json("User not found");
+    if (!authenticatedUser)
+      return res.status(404).json({ message: "User not found" });
 
     req.user = authenticatedUser;
     next();
@@ -248,6 +288,17 @@ const validateAuthentication = async (
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const active_user = req.user as userSession;
+
+    const authToken = req.headers["authorization"]?.split(" ")[1];
+
+    if (authToken) {
+      const decode = jsonwebtoken.decode(authToken) as JwtPayload;
+      const expiry = decode.exp
+        ? decode.exp - Math.floor(Date.now() / 1000)
+        : Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      await blacklistToken(authToken, expiry);
+    }
 
     await user.findByIdAndUpdate(active_user._id, {
       $unset: { refreshToken: 1 },

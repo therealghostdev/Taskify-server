@@ -2,6 +2,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { userSession } from "../types";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import { redis } from "../../config/redis/client";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ function issueJWT(user: userSession) {
 
   const refreshToken = jsonwebtoken.sign(payload, PRIV_KEY ? PRIV_KEY : "", {
     algorithm: "RS256",
+    expiresIn: "7d"
   });
 
   return {
@@ -55,4 +57,8 @@ function validatePassword(password: string, hash: string, salt: string) {
   return hash === verify;
 }
 
-export { issueJWT, genPassword, validatePassword };
+async function blacklistToken(key: string, exp: number) {
+  await redis.set(`blacklist_${key}`, "true", { EX: exp });
+}
+
+export { issueJWT, genPassword, validatePassword, blacklistToken };

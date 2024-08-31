@@ -10,8 +10,9 @@ import cors from "cors";
 import "./config/passport/passportGoogle";
 import session from "express-session";
 import { googleAuthRouter } from "./routes/googleAuth";
-import "./config/passport/passportApple"
+import "./config/passport/passportApple";
 import { appleAuthRouter } from "./routes/appleAuth";
+import { startRedis } from "./config/redis/client";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -55,6 +56,8 @@ main().catch((err) => console.error(err));
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
 });
+
+startRedis().catch((err) => console.log(err));
 
 app.use(urlencoded({ extended: true }));
 

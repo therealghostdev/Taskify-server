@@ -17,6 +17,7 @@ const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const client_1 = require("../../../config/redis/client");
 dotenv_1.default.config();
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -104,14 +105,17 @@ exports.login = login;
 const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const G_user = req.user;
+        const found = yield user_1.default.findOne({ userName: G_user === null || G_user === void 0 ? void 0 : G_user.username });
         if (!G_user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        yield user_1.default.findByIdAndUpdate(G_user._id, {
-            refrehToken: G_user.auth_data.refreshToken,
-        });
+        if (!found) {
+            return res.status(404).json({ message: "User not found" });
+        }
         const token = (0, authentication_1.issueJWT)(G_user);
         G_user.auth_data = token;
+        found.refreshToken = token.refreshToken;
+        yield found.save();
         res.status(200).json({ success: true, userSession: G_user });
     }
     catch (err) {
@@ -122,14 +126,17 @@ exports.googleAuth = googleAuth;
 const appleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const apple_user = req.user;
+        const found = yield user_1.default.findOne({ userName: apple_user });
         if (!apple_user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        yield user_1.default.findByIdAndUpdate(apple_user._id, {
-            refrehToken: apple_user.auth_data.refreshToken,
-        });
+        if (!found) {
+            return res.status(404).json({ message: "User not found" });
+        }
         const token = (0, authentication_1.issueJWT)(apple_user);
         apple_user.auth_data = token;
+        found.refreshToken = token.refreshToken;
+        yield found.save();
         res.status(200).json({ success: true, userSession: apple_user });
     }
     catch (err) {
@@ -138,32 +145,47 @@ const appleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 });
 exports.appleAuth = appleAuth;
 const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const { token } = req.body;
         if (!token) {
-            return res.status(400).json("Token not provided or empty");
+            return res.status(400).json({ message: "Token not provided or empty" });
         }
         const active_user = req.user;
         if (!active_user) {
             return res.status(401).json("Unauthorized");
         }
         const currentUser = yield user_1.default.findById(active_user._id);
+        const currentUserToken = (_a = currentUser === null || currentUser === void 0 ? void 0 : currentUser.refreshToken) === null || _a === void 0 ? void 0 : _a.value;
         if (!currentUser || !currentUser.refreshToken) {
-            return res.status(401).json("Invalid user or no refresh token found");
+            return res
+                .status(401)
+                .json({ message: "Invalid user or no refresh token found" });
         }
+        const isblacklisted = yield client_1.redis.get(`blacklist_${token}`);
+        const isblacklisted_current_token = yield client_1.redis.get(`blacklist_${currentUserToken}`);
+        if (isblacklisted || isblacklisted_current_token)
+            return res
+                .status(401)
+                .json({ message: "Token provided or refreshToken is invalid" });
         const verifyToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_PRIVATE_KEY || "");
         if (!verifyToken) {
-            return res.status(400).json("Could not verify token");
+            return res.status(400).json({ message: "Could not verify token" });
         }
-        const currentVersion = (_a = currentUser.refreshToken.version) !== null && _a !== void 0 ? _a : 0;
+        const currentVersion = (_b = currentUser.refreshToken.version) !== null && _b !== void 0 ? _b : 0;
         if (verifyToken.version !== currentVersion) {
-            return res.status(403).json("Invalid refresh token");
+            return res.status(403).json({ message: "Invalid refresh token" });
+        }
+        if (currentUserToken) {
+            const expiry = Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            yield (0, authentication_1.blacklistToken)(currentUserToken, expiry);
+            yield (0, authentication_1.blacklistToken)(token, expiry);
+            console.log("token blacklisted");
         }
         const newVersion = currentVersion + 1;
         const payload = {
             sub: currentUser.id,
-            iat: Date.now(),
+            iat: Date.now() / 1000,
             version: newVersion,
         };
         const issuedToken = jsonwebtoken_1.default.sign(payload, process.env.RSA_PRIVATE_KEY || "", { expiresIn: "1d", algorithm: "RS256" });
@@ -183,13 +205,16 @@ const validateAuthentication = (req, res, next) => __awaiter(void 0, void 0, voi
     try {
         const headerToken = (_a = req.headers["authorization"]) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
         if (!headerToken)
-            return res.status(401).json("Unauthorized");
+            return res.status(401).json({ message: "unauthorized" });
+        const isblacklisted = yield client_1.redis.get(`blacklist_${headerToken}`);
+        if (isblacklisted)
+            return res.status(401).json({ message: "Token is no longer valid" });
         const verifiedToken = jsonwebtoken_1.default.verify(headerToken, process.env.RSA_PRIVATE_KEY || "");
         if (!verifiedToken)
-            return res.status(403).json("Invalid Token");
+            return res.status(403).json({ message: "Invalid Token" });
         const authenticatedUser = yield user_1.default.findById(verifiedToken.sub);
         if (!authenticatedUser)
-            return res.status(404).json("User not found");
+            return res.status(404).json({ message: "User not found" });
         req.user = authenticatedUser;
         next();
     }
@@ -199,8 +224,17 @@ const validateAuthentication = (req, res, next) => __awaiter(void 0, void 0, voi
 });
 exports.validateAuthentication = validateAuthentication;
 const logout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const active_user = req.user;
+        const authToken = (_a = req.headers["authorization"]) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+        if (authToken) {
+            const decode = jsonwebtoken_1.default.decode(authToken);
+            const expiry = decode.exp
+                ? decode.exp - Math.floor(Date.now() / 1000)
+                : Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            yield (0, authentication_1.blacklistToken)(authToken, expiry);
+        }
         yield user_1.default.findByIdAndUpdate(active_user._id, {
             $unset: { refreshToken: 1 },
         });
