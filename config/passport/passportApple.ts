@@ -44,6 +44,9 @@ passport.use(
           });
         }
 
+        // also find user by mail on this line
+
+        
         if (!foundUser) {
           const newUser = new user({
             firstName: profile.name?.firstName || "",

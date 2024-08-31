@@ -41,8 +41,11 @@ passport.use(
             "google_profile.id": profile.id,
           });
         }
+        
+        const email = profile.emails?.[0]?.value;
+        const findByMail = await user.findOne({ "google_profile.email": email });
 
-        if (!foundUser) {
+        if (!foundUser || !findByMail) {
           const createdUser = new user({
             firstName: profile.name?.givenName || "",
             lastName: profile.name?.familyName || "",

@@ -36,7 +36,7 @@ passport.use(new passport_google_oauth20_1.Strategy({
     passReqToCallback: true,
 }, function (req, accessToken, refreshToken, profile, done) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         try {
             let foundUser;
             const username = req.query.state;
@@ -49,17 +49,19 @@ passport.use(new passport_google_oauth20_1.Strategy({
                     "google_profile.id": profile.id,
                 });
             }
-            if (!foundUser) {
+            const email = (_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value;
+            const findByMail = yield user_1.default.findOne({ "google_profile.email": email });
+            if (!foundUser || !findByMail) {
                 const createdUser = new user_1.default({
-                    firstName: ((_a = profile.name) === null || _a === void 0 ? void 0 : _a.givenName) || "",
-                    lastName: ((_b = profile.name) === null || _b === void 0 ? void 0 : _b.familyName) || "",
+                    firstName: ((_c = profile.name) === null || _c === void 0 ? void 0 : _c.givenName) || "",
+                    lastName: ((_d = profile.name) === null || _d === void 0 ? void 0 : _d.familyName) || "",
                     userName: profile.displayName || `taskify-user-${Date.now()}`,
                     google_profile: [
                         {
                             id: profile.id,
-                            email: ((_d = (_c = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value) || "",
+                            email: ((_f = (_e = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.value) || "",
                             displayName: profile.displayName,
-                            avatar: ((_f = (_e = profile.photos) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.value) || "",
+                            avatar: ((_h = (_g = profile.photos) === null || _g === void 0 ? void 0 : _g[0]) === null || _h === void 0 ? void 0 : _h.value) || "",
                         },
                     ],
                     salt: "taskify",
@@ -71,9 +73,9 @@ passport.use(new passport_google_oauth20_1.Strategy({
             }
             const updatedGoogleProfile = {
                 id: profile.id,
-                email: ((_h = (_g = profile.emails) === null || _g === void 0 ? void 0 : _g[0]) === null || _h === void 0 ? void 0 : _h.value) || "",
+                email: ((_k = (_j = profile.emails) === null || _j === void 0 ? void 0 : _j[0]) === null || _k === void 0 ? void 0 : _k.value) || "",
                 displayName: profile.displayName || "",
-                avatar: ((_k = (_j = profile.photos) === null || _j === void 0 ? void 0 : _j[0]) === null || _k === void 0 ? void 0 : _k.value) || "",
+                avatar: ((_m = (_l = profile.photos) === null || _l === void 0 ? void 0 : _l[0]) === null || _m === void 0 ? void 0 : _m.value) || "",
             };
             const googleProfileIndex = foundUser.google_profile.findIndex((p) => p.id === profile.id);
             if (googleProfileIndex === -1 ||

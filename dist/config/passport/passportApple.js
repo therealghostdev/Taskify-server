@@ -51,6 +51,7 @@ passport_1.default.use(new passport_apple_1.default({
                 "apple_profile.id": profile.id,
             });
         }
+        // also find user by mail on this line
         if (!foundUser) {
             const newUser = new user_1.default({
                 firstName: ((_a = profile.name) === null || _a === void 0 ? void 0 : _a.firstName) || "",
