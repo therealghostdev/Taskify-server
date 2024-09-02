@@ -50,6 +50,7 @@ const googleAuth_1 = require("./routes/googleAuth");
 require("./config/passport/passportApple");
 const appleAuth_1 = require("./routes/appleAuth");
 const client_1 = require("./config/redis/client");
+const express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize"));
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
@@ -88,6 +89,7 @@ app.use((0, express_1.urlencoded)({ extended: true }));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
+app.use(express_mongo_sanitize_1.default);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);
 app.use("/", routes_1.default);

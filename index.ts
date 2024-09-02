@@ -13,6 +13,7 @@ import { googleAuthRouter } from "./routes/googleAuth";
 import "./config/passport/passportApple";
 import { appleAuthRouter } from "./routes/appleAuth";
 import { startRedis } from "./config/redis/client";
+import mongoSanitize from "express-mongo-sanitize";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -64,6 +65,7 @@ app.use(urlencoded({ extended: true }));
 initilizePassportJwt(passport);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(mongoSanitize);
 
 app.use("/taskify/v1/auth", appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuthRouter);
