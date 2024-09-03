@@ -10,11 +10,11 @@ const login_register_1 = require("../utils/middlewares/routes/login&register");
 const rate_limiter_1 = require("../config/rate-limiter");
 exports.googleAuthRouter = express_1.default.Router();
 // initilize google authentication
-exports.googleAuthRouter.get("/google_auth", rate_limiter_1.limiter, (req, res, next) => {
+exports.googleAuthRouter.get("/google_auth", rate_limiter_1.loginLimiter, (req, res, next) => {
     const { username } = req.query;
     passport_1.default.authenticate("google", {
         scope: ["profile", "email"],
         state: username,
     })(req, res, next);
 });
-exports.googleAuthRouter.get("/google/callback", rate_limiter_1.limiter, passport_1.default.authenticate("google", { failureRedirect: "/" }), login_register_1.googleAuth);
+exports.googleAuthRouter.get("/google/callback", rate_limiter_1.loginLimiter, passport_1.default.authenticate("google", { failureRedirect: "/" }), login_register_1.googleAuth);

@@ -11,13 +11,14 @@ import {
   validateLoginRequest,
 } from "../utils/middlewares/validators/functions";
 import { csrfMiddleware } from "../config/csrf-csrf";
+import { loginLimiter } from "../config/rate-limiter";
 
 const router = express.Router();
 
 // ----------------------------------------------> Authentication Routes <-------------------------------------------------------------------------
 router.post("/register", validateRegisterRequest, register);
 
-router.post("/login", validateLoginRequest, login);
+router.post("/login", validateLoginRequest, loginLimiter, login);
 
 router.post("/refresh_auth", validateAuthentication, refreshToken);
 
