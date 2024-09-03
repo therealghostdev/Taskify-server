@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userRoute = void 0;
 const express_1 = __importDefault(require("express"));
+const login_register_1 = require("../utils/middlewares/routes/login&register");
+const csrf_csrf_1 = require("../config/csrf-csrf");
 exports.userRoute = express_1.default.Router();
-exports.userRoute.post("/add", (req, res, next) => {
+exports.userRoute.post("/add", login_register_1.validateAuthentication, csrf_csrf_1.csrfMiddleware, (req, res, next) => {
     try {
         res.status(200).json("Hello");
     }
@@ -14,7 +16,7 @@ exports.userRoute.post("/add", (req, res, next) => {
         next(err);
     }
 });
-exports.userRoute.get("/add", (req, res, next) => {
+exports.userRoute.get("/add", login_register_1.validateAuthentication, csrf_csrf_1.csrfMiddleware, (req, res, next) => {
     try {
         res.status(200).json("Hello");
     }

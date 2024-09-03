@@ -10,6 +10,7 @@ import {
   validateRegisterRequest,
   validateLoginRequest,
 } from "../utils/middlewares/validators/functions";
+import { csrfMiddleware } from "../config/csrf-csrf";
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ router.post("/login", validateLoginRequest, login);
 
 router.post("/refresh_auth", validateAuthentication, refreshToken);
 
-router.post("/logout", validateAuthentication, logout);
+router.post("/logout", validateAuthentication, csrfMiddleware, logout);
 
 // -----------------------------------------------> End of Authentication Routes <-------------------------------------------------------------------
 

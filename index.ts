@@ -13,7 +13,6 @@ import "./config/passport/passportApple";
 import { appleAuthRouter } from "./routes/appleAuth";
 import { startRedis } from "./config/redis/client";
 import mongoSanitize from "express-mongo-sanitize";
-import { csrfMiddleware } from "./config/csrf-csrf";
 import cookieParser from "cookie-parser";
 import { userRoute } from "./routes/user";
 
@@ -74,7 +73,6 @@ app.use(
   })
 );
 
-app.use("/user", csrfMiddleware); // all protected route should be here
 app.use("/user", userRoute);
 app.use("/taskify/v1/auth", appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuthRouter);

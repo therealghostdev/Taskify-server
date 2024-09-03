@@ -50,7 +50,6 @@ require("./config/passport/passportApple");
 const appleAuth_1 = require("./routes/appleAuth");
 const client_1 = require("./config/redis/client");
 const express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize"));
-const csrf_csrf_1 = require("./config/csrf-csrf");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const user_1 = require("./routes/user");
 const envFile = process.env.NODE_ENV === "production"
@@ -97,7 +96,6 @@ app.use((0, cors_1.default)({
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,
 }));
-app.use("/user", csrf_csrf_1.csrfMiddleware); // all protected route should be here
 app.use("/user", user_1.userRoute);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);

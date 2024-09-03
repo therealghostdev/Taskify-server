@@ -6,7 +6,7 @@ import {
   blacklistToken,
 } from "../../functions/authentication";
 import user from "../../../models/user";
-import { userSession } from "../../types";
+import { CookieOptions, userSession } from "../../types";
 import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { redis } from "../../../config/redis/client";
@@ -314,25 +314,28 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
 
     req.user = undefined;
 
-    res.clearCookie("connect.sid", { path: "/" });
-    res.clearCookie("__Host-psifi.x-csrf-token", { path: "/" });
+    const cookieOptions: CookieOptions = {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      httpOnly: true,
+      expires: new Date(0),
+    };
+
+    res.clearCookie("connect.sid", cookieOptions);
+    res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions);
 
     if (req.session) {
       req.session.destroy((err) => {
         if (err) {
           return next(err);
         }
-        res.clearCookie("connect.sid", { path: "/" });
+        res.clearCookie("connect.sid", cookieOptions);
         res.status(200).json({ message: "Logged out successfully" });
       });
     } else {
       res.status(200).json({ message: "Logged out successfully" });
     }
-
-    req.logOut((err) => {
-      if (err) return next(err);
-      next();
-    });
   } catch (err) {
     next(err);
   }

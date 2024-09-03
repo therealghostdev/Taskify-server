@@ -23,12 +23,13 @@ const handleCsrfError = (err, req, res) => {
 exports.handleCsrfError = handleCsrfError;
 const csrfMiddleware = (req, res, next) => {
     var _a;
-    console.log("CSRF Token:", req.headers["x-csrf-token"]);
+    if (!req.user)
+        return res.status(401).json({ message: "Unauthorized" });
     const headerToken = req.headers["x-csrf-token"];
     const cookieToken = (_a = req.cookies["__Host-psifi.x-csrf-token"]) === null || _a === void 0 ? void 0 : _a.split("|")[0];
-    if (headerToken !== cookieToken) {
+    if (!headerToken || !cookieToken || headerToken !== cookieToken) {
         console.error("CSRF token mismatch");
-        return res.status(403).json({ error: "CSRF token mismatch" });
+        return res.status(403).json({ error: "CSRF token mismatch or missing" });
     }
     doubleCsrfProtection(req, res, (err) => {
         if (err) {

@@ -59,3 +59,11 @@ export type DoneFunctionType = (
   user?: unknown,
   info?: unknown
 ) => void;
+
+export interface CookieOptions {
+  path: string;
+  secure: boolean;
+  sameSite: "strict" | "lax" | "none";
+  httpOnly: boolean;
+  expires: Date;
+}

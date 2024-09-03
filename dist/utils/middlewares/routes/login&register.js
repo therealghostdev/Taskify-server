@@ -244,25 +244,27 @@ const logout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             $unset: { refreshToken: 1 },
         });
         req.user = undefined;
-        res.clearCookie("connect.sid", { path: "/" });
-        res.clearCookie("__Host-psifi.x-csrf-token", { path: "/" });
+        const cookieOptions = {
+            path: "/",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            httpOnly: true,
+            expires: new Date(0),
+        };
+        res.clearCookie("connect.sid", cookieOptions);
+        res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions);
         if (req.session) {
             req.session.destroy((err) => {
                 if (err) {
                     return next(err);
                 }
-                res.clearCookie("connect.sid", { path: "/" });
+                res.clearCookie("connect.sid", cookieOptions);
                 res.status(200).json({ message: "Logged out successfully" });
             });
         }
         else {
             res.status(200).json({ message: "Logged out successfully" });
         }
-        req.logOut((err) => {
-            if (err)
-                return next(err);
-            next();
-        });
     }
     catch (err) {
         next(err);
