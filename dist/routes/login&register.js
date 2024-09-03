@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.login = exports.register = void 0;
-const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function () {
     try {
         res.send("register page");
     }
@@ -19,7 +19,7 @@ const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.register = register;
-const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function () {
     try {
         res.send("login page");
     }
