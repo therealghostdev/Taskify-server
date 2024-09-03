@@ -3,7 +3,7 @@ import { Algorithm } from "jsonwebtoken";
 import { Types, Document } from "mongoose";
 
 export interface userType extends Document {
-  _id?: Types.ObjectId;
+  _id: Types.ObjectId;
   firstName: string;
   lastName: string;
   userName: string;
