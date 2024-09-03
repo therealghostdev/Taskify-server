@@ -42,7 +42,6 @@ const path_1 = __importDefault(require("path"));
 const routes_1 = __importDefault(require("./routes"));
 const passportJwt_1 = __importDefault(require("./config/passport/passportJwt"));
 const passport_1 = __importDefault(require("passport"));
-const ErrorMessage_1 = __importDefault(require("./lib/ErrorMessage"));
 const cors_1 = __importDefault(require("cors"));
 require("./config/passport/passportGoogle");
 const express_session_1 = __importDefault(require("express-session"));
@@ -51,21 +50,23 @@ require("./config/passport/passportApple");
 const appleAuth_1 = require("./routes/appleAuth");
 const client_1 = require("./config/redis/client");
 const express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize"));
+const csrf_csrf_1 = require("./config/csrf-csrf");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const user_1 = require("./routes/user");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
+app.use((0, cookie_parser_1.default)());
 app.use((0, express_session_1.default)({
     secret: process.env.RSA_PRIVATE_KEY || "",
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true, maxAge: 1000 * 60 * 60 },
-}));
-app.use((0, cors_1.default)({
-    origin: "*", // will be replaced with final frontend url
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 1000 * 60 * 60,
+    },
 }));
 const port = process.env.PORT || 3000;
 const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
@@ -89,17 +90,26 @@ app.use((0, express_1.urlencoded)({ extended: true }));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
-app.use(express_mongo_sanitize_1.default);
+app.use((0, express_mongo_sanitize_1.default)());
+app.use((0, cors_1.default)({
+    origin: "*", // will be replaced with final frontend url
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+    credentials: true,
+}));
+app.use("/user", csrf_csrf_1.csrfMiddleware); // all protected route should be here
+app.use("/user", user_1.userRoute);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);
 app.use("/", routes_1.default);
 app.get("/", (req, res) => {
     res.send("Taskify server");
 });
-app.use((err, req, res) => {
-    console.error(err.stack);
-    if (err instanceof ErrorMessage_1.default) {
-        return res.status(err.code).json({ message: err.message });
-    }
-    return res.status(500).json({ message: "Something went wrong!" });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+app.use((err, req, res, next) => {
+    console.error("Global error:", err);
+    res.status(err.status || 500).json({
+        message: err.message || "Internal Server Error",
+        stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    });
 });

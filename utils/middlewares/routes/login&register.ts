@@ -10,6 +10,7 @@ import { userSession } from "../../types";
 import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { redis } from "../../../config/redis/client";
+import { addCsrfToSession } from "../../../config/csrf-csrf";
 
 dotenv.config();
 
@@ -84,7 +85,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     if (!isValidUser)
       return res.status(400).json("username or password invalid");
 
-    const userSession: userSession = {
+    let userSession: userSession = {
       _id: found._id,
       firstname: found.firstName,
       lastname: found.lastName,
@@ -93,6 +94,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         token: "",
         expires: "",
         refreshToken: { value: "", version: 0 },
+        csrf: "",
       },
     };
 
@@ -104,6 +106,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     userSession.auth_data.token = token.token;
     userSession.auth_data.expires = token.expires;
     userSession.auth_data.refreshToken = token.refreshToken;
+    userSession = addCsrfToSession(req, res, userSession);
 
     return res.status(200).json({ success: true, userSession });
   } catch (err) {
@@ -130,7 +133,10 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
 
     found.refreshToken = token.refreshToken;
     await found.save();
-    res.status(200).json({ success: true, userSession: G_user });
+
+    const sessionWithCsrf = addCsrfToSession(req, res, G_user);
+
+    res.status(200).json({ success: true, userSession: sessionWithCsrf });
   } catch (err) {
     next(err);
   }
@@ -155,7 +161,9 @@ const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
 
     found.refreshToken = token.refreshToken;
     await found.save();
-    res.status(200).json({ success: true, userSession: apple_user });
+
+    const sessionWithCsrf = addCsrfToSession(req, res, apple_user);
+    res.status(200).json({ success: true, userSession: sessionWithCsrf });
   } catch (err) {
     next(err);
   }
@@ -306,17 +314,25 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
 
     req.user = undefined;
 
+    res.clearCookie("connect.sid", { path: "/" });
+    res.clearCookie("__Host-psifi.x-csrf-token", { path: "/" });
+
     if (req.session) {
       req.session.destroy((err) => {
         if (err) {
           return next(err);
         }
-        res.clearCookie("connect.sid");
+        res.clearCookie("connect.sid", { path: "/" });
         res.status(200).json({ message: "Logged out successfully" });
       });
     } else {
       res.status(200).json({ message: "Logged out successfully" });
     }
+
+    req.logOut((err) => {
+      if (err) return next(err);
+      next();
+    });
   } catch (err) {
     next(err);
   }

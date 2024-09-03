@@ -18,6 +18,7 @@ const user_1 = __importDefault(require("../../../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const client_1 = require("../../../config/redis/client");
+const csrf_csrf_1 = require("../../../config/csrf-csrf");
 dotenv_1.default.config();
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -78,7 +79,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         const isValidUser = (0, authentication_1.validatePassword)(password, found.hash, found.salt);
         if (!isValidUser)
             return res.status(400).json("username or password invalid");
-        const userSession = {
+        let userSession = {
             _id: found._id,
             firstname: found.firstName,
             lastname: found.lastName,
@@ -87,6 +88,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
                 token: "",
                 expires: "",
                 refreshToken: { value: "", version: 0 },
+                csrf: "",
             },
         };
         const token = (0, authentication_1.issueJWT)(userSession);
@@ -95,6 +97,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         userSession.auth_data.token = token.token;
         userSession.auth_data.expires = token.expires;
         userSession.auth_data.refreshToken = token.refreshToken;
+        userSession = (0, csrf_csrf_1.addCsrfToSession)(req, res, userSession);
         return res.status(200).json({ success: true, userSession });
     }
     catch (err) {
@@ -116,7 +119,8 @@ const googleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         G_user.auth_data = token;
         found.refreshToken = token.refreshToken;
         yield found.save();
-        res.status(200).json({ success: true, userSession: G_user });
+        const sessionWithCsrf = (0, csrf_csrf_1.addCsrfToSession)(req, res, G_user);
+        res.status(200).json({ success: true, userSession: sessionWithCsrf });
     }
     catch (err) {
         next(err);
@@ -137,7 +141,8 @@ const appleAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         apple_user.auth_data = token;
         found.refreshToken = token.refreshToken;
         yield found.save();
-        res.status(200).json({ success: true, userSession: apple_user });
+        const sessionWithCsrf = (0, csrf_csrf_1.addCsrfToSession)(req, res, apple_user);
+        res.status(200).json({ success: true, userSession: sessionWithCsrf });
     }
     catch (err) {
         next(err);
@@ -239,18 +244,25 @@ const logout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             $unset: { refreshToken: 1 },
         });
         req.user = undefined;
+        res.clearCookie("connect.sid", { path: "/" });
+        res.clearCookie("__Host-psifi.x-csrf-token", { path: "/" });
         if (req.session) {
             req.session.destroy((err) => {
                 if (err) {
                     return next(err);
                 }
-                res.clearCookie("connect.sid");
+                res.clearCookie("connect.sid", { path: "/" });
                 res.status(200).json({ message: "Logged out successfully" });
             });
         }
         else {
             res.status(200).json({ message: "Logged out successfully" });
         }
+        req.logOut((err) => {
+            if (err)
+                return next(err);
+            next();
+        });
     }
     catch (err) {
         next(err);

@@ -27,6 +27,7 @@ const createUserSession = (user) => ({
         token: "",
         expires: "",
         refreshToken: { value: "", version: 0 },
+        csrf: "",
     },
 });
 passport.use(new passport_google_oauth20_1.Strategy({
@@ -50,7 +51,9 @@ passport.use(new passport_google_oauth20_1.Strategy({
                 });
             }
             const email = (_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value;
-            const findByMail = yield user_1.default.findOne({ "google_profile.email": email });
+            const findByMail = yield user_1.default.findOne({
+                "google_profile.email": email,
+            });
             if (!foundUser || !findByMail) {
                 const createdUser = new user_1.default({
                     firstName: ((_c = profile.name) === null || _c === void 0 ? void 0 : _c.givenName) || "",

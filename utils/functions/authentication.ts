@@ -27,13 +27,14 @@ function issueJWT(user: userSession) {
 
   const refreshToken = jsonwebtoken.sign(payload, PRIV_KEY ? PRIV_KEY : "", {
     algorithm: "RS256",
-    expiresIn: "7d"
+    expiresIn: "7d",
   });
 
   return {
     refreshToken: { value: refreshToken, version: payload.version },
     token: "Bearer " + signedToken,
     expires: expiresIn,
+    csrf: "",
   };
 }
 

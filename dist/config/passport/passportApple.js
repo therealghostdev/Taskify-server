@@ -27,6 +27,7 @@ const createUserSession = (user) => ({
         token: "",
         expires: "",
         refreshToken: { value: "", version: 0 },
+        csrf: "",
     },
 });
 // Apple Strategy Configuration

@@ -16,6 +16,7 @@ const createUserSession = (user: any): userSession => ({
     token: "",
     expires: "",
     refreshToken: { value: "", version: 0 },
+    csrf: "",
   },
 });
 
@@ -46,7 +47,6 @@ passport.use(
 
         // also find user by mail on this line
 
-        
         if (!foundUser) {
           const newUser = new user({
             firstName: profile.name?.firstName || "",

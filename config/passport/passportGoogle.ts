@@ -16,6 +16,7 @@ const createUserSession = (user: any): userSession => ({
     token: "",
     expires: "",
     refreshToken: { value: "", version: 0 },
+    csrf: "",
   },
 });
 
@@ -41,9 +42,11 @@ passport.use(
             "google_profile.id": profile.id,
           });
         }
-        
+
         const email = profile.emails?.[0]?.value;
-        const findByMail = await user.findOne({ "google_profile.email": email });
+        const findByMail = await user.findOne({
+          "google_profile.email": email,
+        });
 
         if (!foundUser || !findByMail) {
           const createdUser = new user({
