@@ -49,16 +49,17 @@ const googleAuth_1 = require("./routes/googleAuth");
 require("./config/passport/passportApple");
 const appleAuth_1 = require("./routes/appleAuth");
 const client_1 = require("./config/redis/client");
-const express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const user_1 = require("./routes/user");
 const rate_limiter_1 = require("./config/rate-limiter");
+const mongo_sanitize_1 = require("./config/mongo-sanitize");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
 app.use((0, cookie_parser_1.default)());
+app.use(rate_limiter_1.limiter);
 app.use((0, express_session_1.default)({
     secret: process.env.RSA_PRIVATE_KEY || "",
     resave: false,
@@ -90,14 +91,13 @@ app.use((0, express_1.urlencoded)({ extended: true }));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
-app.use((0, express_mongo_sanitize_1.default)());
+app.use(mongo_sanitize_1.sanitizeInputs);
 app.use((0, cors_1.default)({
     origin: "*", // will be replaced with final frontend url
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,
 }));
-app.use(rate_limiter_1.limiter);
 app.use("/user", user_1.userRoute);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);

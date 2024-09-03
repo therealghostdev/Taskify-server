@@ -12,10 +12,10 @@ import { googleAuthRouter } from "./routes/googleAuth";
 import "./config/passport/passportApple";
 import { appleAuthRouter } from "./routes/appleAuth";
 import { startRedis } from "./config/redis/client";
-import mongoSanitize from "express-mongo-sanitize";
 import cookieParser from "cookie-parser";
 import { userRoute } from "./routes/user";
 import { limiter } from "./config/rate-limiter";
+import { sanitizeInputs } from "./config/mongo-sanitize";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -25,6 +25,7 @@ dotenv.config({ path: path.resolve(__dirname, "..", envFile) });
 
 const app = express();
 app.use(cookieParser());
+app.use(limiter);
 
 app.use(
   session({
@@ -63,7 +64,7 @@ app.use(urlencoded({ extended: true }));
 initilizePassportJwt(passport);
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(mongoSanitize());
+app.use(sanitizeInputs);
 
 app.use(
   cors({
@@ -73,8 +74,6 @@ app.use(
     credentials: true,
   })
 );
-
-app.use(limiter);
 
 app.use("/user", userRoute);
 app.use("/taskify/v1/auth", appleAuthRouter);
