@@ -15,6 +15,7 @@ import { startRedis } from "./config/redis/client";
 import mongoSanitize from "express-mongo-sanitize";
 import cookieParser from "cookie-parser";
 import { userRoute } from "./routes/user";
+import { limiter } from "./config/rate-limiter";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -72,6 +73,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(limiter);
 
 app.use("/user", userRoute);
 app.use("/taskify/v1/auth", appleAuthRouter);
