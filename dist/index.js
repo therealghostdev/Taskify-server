@@ -52,6 +52,7 @@ const client_1 = require("./config/redis/client");
 const express_mongo_sanitize_1 = __importDefault(require("express-mongo-sanitize"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const user_1 = require("./routes/user");
+const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
@@ -96,6 +97,13 @@ app.use((0, cors_1.default)({
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,
 }));
+const limiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000,
+    limit: 200,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+});
+app.use(limiter);
 app.use("/user", user_1.userRoute);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);
