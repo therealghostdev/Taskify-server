@@ -16,6 +16,18 @@ const generateKeyPair = () => {
     },
   });
 
+  const keypair2 = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+      type: "pkcs1",
+      format: "pem",
+    },
+    privateKeyEncoding: {
+      type: "pkcs1",
+      format: "pem",
+    },
+  });
+
   // Resolve the path to the .env file in the root directory
   const envFilePath = path.resolve(__dirname, "../../.env");
 
@@ -25,6 +37,15 @@ const generateKeyPair = () => {
     "\\n"
   )}"\nRSA_PRIVATE_KEY="${keypair.privateKey.replace(/\n/g, "\\n")}"\n`;
   fs.appendFileSync(envFilePath, envData);
+
+  const envData2 = `\nREFRESH_TOKEN_PUBLIC_KEY="${keypair2.publicKey.replace(
+    /\n/g,
+    "\\n"
+  )}"\nREFRESH_TOKEN_PRIVATE_KEY="${keypair.privateKey.replace(
+    /\n/g,
+    "\\n"
+  )}"\n`;
+  fs.appendFileSync(envFilePath, envData2);
 
   console.log("Keys written to .env file");
 };
