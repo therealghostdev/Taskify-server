@@ -17,7 +17,7 @@ const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const client_1 = require("../../../config/redis/client");
+const redis_1 = require("../../../config/redis");
 const csrf_csrf_1 = require("../../../config/csrf-csrf");
 dotenv_1.default.config();
 const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -167,8 +167,8 @@ const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 .status(401)
                 .json({ message: "Invalid user or no refresh token found" });
         }
-        const isblacklisted = yield client_1.redis.get(`blacklist_${token}`);
-        const isblacklisted_current_token = yield client_1.redis.get(`blacklist_${currentUserToken}`);
+        const isblacklisted = yield redis_1.redis.get(`blacklist_${token}`);
+        const isblacklisted_current_token = yield redis_1.redis.get(`blacklist_${currentUserToken}`);
         if (isblacklisted || isblacklisted_current_token)
             return res
                 .status(401)
@@ -211,7 +211,7 @@ const validateAuthentication = (req, res, next) => __awaiter(void 0, void 0, voi
         const headerToken = (_a = req.headers["authorization"]) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
         if (!headerToken)
             return res.status(401).json({ message: "unauthorized" });
-        const isblacklisted = yield client_1.redis.get(`blacklist_${headerToken}`);
+        const isblacklisted = yield redis_1.redis.get(`blacklist_${headerToken}`);
         if (isblacklisted)
             return res.status(401).json({ message: "Token is no longer valid" });
         const verifiedToken = jsonwebtoken_1.default.verify(headerToken, process.env.RSA_PRIVATE_KEY || "");

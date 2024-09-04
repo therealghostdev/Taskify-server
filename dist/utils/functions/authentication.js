@@ -19,7 +19,7 @@ exports.blacklistToken = blacklistToken;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const crypto_1 = __importDefault(require("crypto"));
-const client_1 = require("../../config/redis/client");
+const redis_1 = require("../../config/redis");
 dotenv_1.default.config();
 function issueJWT(user) {
     const _id = user._id;
@@ -64,6 +64,6 @@ function validatePassword(password, hash, salt) {
 }
 function blacklistToken(key, exp) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield client_1.redis.set(`blacklist_${key}`, "true", { EX: exp });
+        yield redis_1.redis.set(`blacklist_${key}`, "true", { EX: exp });
     });
 }

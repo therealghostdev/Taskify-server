@@ -48,18 +48,18 @@ const express_session_1 = __importDefault(require("express-session"));
 const googleAuth_1 = require("./routes/googleAuth");
 require("./config/passport/passportApple");
 const appleAuth_1 = require("./routes/appleAuth");
-const client_1 = require("./config/redis/client");
+const redis_1 = require("./config/redis");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const user_1 = require("./routes/user");
-const rate_limiter_1 = require("./config/rate-limiter");
 const mongo_sanitize_1 = require("./config/mongo-sanitize");
+const express_rate_limit_1 = require("express-rate-limit");
+const rate_limit_redis_1 = require("rate-limit-redis");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
 app.use((0, cookie_parser_1.default)());
-app.use(rate_limiter_1.limiter);
 app.use((0, express_session_1.default)({
     secret: process.env.RSA_PRIVATE_KEY || "",
     resave: false,
@@ -74,19 +74,19 @@ const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            yield (0, redis_1.startRedis)();
             yield mongoose_1.default.connect(dbUri);
             console.log("Mongoose connection success");
+            app.listen(port, () => {
+                console.log(`[server]: Server is running at http://localhost:${port}`);
+            });
         }
         catch (err) {
-            console.error("Something went wrong with the database connection", err);
+            console.error("Failed to start application:", err);
         }
     });
 }
 main().catch((err) => console.error(err));
-app.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
-});
-(0, client_1.startRedis)().catch((err) => console.log(err));
 app.use((0, express_1.urlencoded)({ extended: true }));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
@@ -98,6 +98,32 @@ app.use((0, cors_1.default)({
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,
 }));
+const limiter = (0, express_rate_limit_1.rateLimit)({
+    windowMs: 5 * 60 * 1000,
+    limit: 200,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: "Too many requests",
+    store: new rate_limit_redis_1.RedisStore({
+        prefix: "general_",
+        sendCommand: (...args) => __awaiter(void 0, void 0, void 0, function* () {
+            return yield redis_1.redis.sendCommand(args);
+        }),
+    }),
+});
+const loginLimiter = (0, express_rate_limit_1.rateLimit)({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: "Too many login attempts, please try again after 15 minutes",
+    store: new rate_limit_redis_1.RedisStore({
+        prefix: "login_",
+        sendCommand: (...args) => __awaiter(void 0, void 0, void 0, function* () { return yield redis_1.redis.sendCommand(args); }),
+    }),
+});
+app.use("/login", loginLimiter);
+app.use("/google_auth", loginLimiter);
+app.use("/apple_auth", loginLimiter);
+app.use("/user", limiter);
 app.use("/user", user_1.userRoute);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
 app.use("/taskify/v1/auth", googleAuth_1.googleAuthRouter);

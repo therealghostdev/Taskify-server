@@ -9,7 +9,7 @@ import user from "../../../models/user";
 import { CookieOptions, userSession } from "../../types";
 import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
-import { redis } from "../../../config/redis/client";
+import { redis } from "../../../config/redis";
 import { addCsrfToSession } from "../../../config/csrf-csrf";
 
 dotenv.config();

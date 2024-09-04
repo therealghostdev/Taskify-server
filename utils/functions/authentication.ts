@@ -2,7 +2,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { userSession } from "../types";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { redis } from "../../config/redis/client";
+import { redis } from "../../config/redis";
 
 dotenv.config();
 

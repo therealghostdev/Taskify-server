@@ -13,7 +13,7 @@ async function startRedis() {
     start && console.log("redis service started");
   } catch (err) {
     redis.disconnect();
-    console.log("Error on occurred on redis", err);
+    console.log("Error occurred on redis", err);
   }
 }
 

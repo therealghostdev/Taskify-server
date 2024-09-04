@@ -24,13 +24,12 @@ exports.redis = redis;
 function startRedis() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("start");
             const start = yield redis.connect();
             start && console.log("redis service started");
         }
         catch (err) {
             redis.disconnect();
-            console.log("Error on occurred on redis", err);
+            console.log("Error occurred on redis", err);
         }
     });
 }
