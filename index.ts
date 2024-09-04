@@ -103,7 +103,7 @@ app.use("/login", loginLimiter);
 app.use("/google_auth", loginLimiter);
 app.use("/apple_auth", loginLimiter);
 app.use("/refresh_auth", loginLimiter);
-app.use("/user", limiter);
+app.use(limiter);
 
 app.use("/user", userRoute);
 app.use("/taskify/v1/auth", appleAuthRouter);
