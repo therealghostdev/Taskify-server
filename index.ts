@@ -102,6 +102,7 @@ const loginLimiter = rateLimit({
 app.use("/login", loginLimiter);
 app.use("/google_auth", loginLimiter);
 app.use("/apple_auth", loginLimiter);
+app.use("/refresh_auth", loginLimiter);
 app.use("/user", limiter);
 
 app.use("/user", userRoute);

@@ -123,6 +123,7 @@ const loginLimiter = (0, express_rate_limit_1.rateLimit)({
 app.use("/login", loginLimiter);
 app.use("/google_auth", loginLimiter);
 app.use("/apple_auth", loginLimiter);
+app.use("/refresh_auth", loginLimiter);
 app.use("/user", limiter);
 app.use("/user", user_1.userRoute);
 app.use("/taskify/v1/auth", appleAuth_1.appleAuthRouter);
