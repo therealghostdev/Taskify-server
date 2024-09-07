@@ -52,7 +52,7 @@ passport.use(
           const createdUser = new user({
             firstName: profile.name?.givenName || "",
             lastName: profile.name?.familyName || "",
-            userName: username || profile.displayName || `taskify-user-${Date.now()}`,
+            userName: profile.displayName || `taskify-user-${Date.now()}`,
             google_profile: [
               {
                 id: profile.id,
