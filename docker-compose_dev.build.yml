@@ -1,7 +1,9 @@
 version: '3'
 services:
   taskify:
-    build: .
+    image: therealghostdev/taskify:1.0
+    volumes:
+      - "./:/usr/src/taskify"
     ports:
       - "3000:3000"
     depends_on:
@@ -10,6 +12,7 @@ services:
     environment:
       MONGODB_URI: ${MONGODB_URI}
       REDIS_URL: ${REDIS_URL}
+      NODE_ENV: development
 
   mongo:
     image: mongo:latest
