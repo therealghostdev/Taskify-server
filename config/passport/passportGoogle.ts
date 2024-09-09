@@ -36,6 +36,7 @@ passport.use(
         console.log(username);
 
         if (username && username !== "") {
+          //issues here, users should be found by username if given username exists in db
           foundUser = await user.findOne({ userName: username });
         } else {
           foundUser = await user.findOne({

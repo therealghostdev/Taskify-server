@@ -43,6 +43,7 @@ passport.use(new passport_google_oauth20_1.Strategy({
             const username = req.query.state;
             console.log(username);
             if (username && username !== "") {
+                //issues here, users should be found by username if given username exists in db
                 foundUser = yield user_1.default.findOne({ userName: username });
             }
             else {
