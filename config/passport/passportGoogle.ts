@@ -31,7 +31,7 @@ passport.use(
     async function (req, accessToken, refreshToken, profile, done) {
       try {
         let foundUser;
-      
+
         const username = req.query.state as string;
         const email = profile.emails?.[0]?.value;
 

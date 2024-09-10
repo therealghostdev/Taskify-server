@@ -112,7 +112,7 @@ const limiter = (0, express_rate_limit_1.rateLimit)({
     }),
 });
 const loginLimiter = (0, express_rate_limit_1.rateLimit)({
-    windowMs: 1 * 60 * 1000,
+    windowMs: 15 * 60 * 1000,
     max: 5,
     message: "Too many login attempts, please try again after 15 minutes",
     store: new rate_limit_redis_1.RedisStore({

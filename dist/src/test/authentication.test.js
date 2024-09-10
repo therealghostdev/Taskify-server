@@ -13,8 +13,9 @@ globals_1.jest.mock("jsonwebtoken");
     const signedToken = "mocktoken";
     const refreshToken = "mocktoken";
     (0, node_test_1.beforeEach)(() => {
+        jsonwebtoken_1.default.sign.mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        jsonwebtoken_1.default.sign.mockImplementation((payload, key, options) => {
+        (payload, key, options) => {
             if (options.expiresIn === "1d") {
                 return signedToken;
             }
@@ -25,10 +26,12 @@ globals_1.jest.mock("jsonwebtoken");
         process.env.RSA_PUBLIC_KEY = "mockpublickey";
     });
     (0, globals_1.test)("Should return expect token vales for user session", () => {
-        const result = { refreshToken: { value: refreshToken, version: 0 },
+        const result = {
+            refreshToken: { value: refreshToken, version: 0 },
             token: "Bearer " + signedToken,
             expires: "1d",
-            csrf: "", };
+            csrf: "",
+        };
         (0, globals_1.expect)(result).toEqual({
             refreshToken: { value: refreshToken, version: 0 },
             token: "Bearer " + signedToken,
