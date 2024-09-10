@@ -41,23 +41,19 @@ passport.use(new passport_google_oauth20_1.Strategy({
         try {
             let foundUser;
             const username = req.query.state;
-            console.log(username);
+            const email = (_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value;
             if (username && username !== "") {
-                console.log("it ran");
-                //issues here, users should be found by username if given username exists in db
                 foundUser = yield user_1.default.findOne({ userName: username });
             }
             else {
-                console.log("it ran twice");
                 foundUser = yield user_1.default.findOne({
-                    "google_profile.id": profile.id,
+                    $or: [
+                        { "google_profile.id": profile.id },
+                        { "google_profile.email": email },
+                    ],
                 });
             }
-            const email = (_b = (_a = profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value;
-            const findByMail = yield user_1.default.findOne({
-                "google_profile.email": email,
-            });
-            if (!foundUser || !findByMail) {
+            if (!foundUser) {
                 const createdUser = new user_1.default({
                     firstName: ((_c = profile.name) === null || _c === void 0 ? void 0 : _c.givenName) || "",
                     lastName: ((_d = profile.name) === null || _d === void 0 ? void 0 : _d.familyName) || "",

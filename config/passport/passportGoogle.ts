@@ -31,25 +31,22 @@ passport.use(
     async function (req, accessToken, refreshToken, profile, done) {
       try {
         let foundUser;
-
+      
         const username = req.query.state as string;
-        console.log(username);
+        const email = profile.emails?.[0]?.value;
 
         if (username && username !== "") {
-          //issues here, users should be found by username if given username exists in db
           foundUser = await user.findOne({ userName: username });
         } else {
           foundUser = await user.findOne({
-            "google_profile.id": profile.id,
+            $or: [
+              { "google_profile.id": profile.id },
+              { "google_profile.email": email },
+            ],
           });
         }
 
-        const email = profile.emails?.[0]?.value;
-        const findByMail = await user.findOne({
-          "google_profile.email": email,
-        });
-
-        if (!foundUser || !findByMail) {
+        if (!foundUser) {
           const createdUser = new user({
             firstName: profile.name?.givenName || "",
             lastName: profile.name?.familyName || "",
