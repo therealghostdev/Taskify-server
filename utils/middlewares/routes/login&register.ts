@@ -7,7 +7,7 @@ import {
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { CookieOptions, userSession } from "../../types";
-import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
+import jsonwebtoken, { JwtPayload, JsonWebTokenError } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { redis } from "../../../config/redis";
 import { addCsrfToSession } from "../../../config/csrf-csrf";
@@ -207,10 +207,19 @@ const refreshToken = async (
         .status(401)
         .json({ message: "Token provided or refreshToken is invalid" });
 
-    const verifyToken = jsonwebtoken.verify(
-      token,
-      process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
-    ) as JwtPayload;
+        let verifyToken;
+        try {
+          verifyToken = jsonwebtoken.verify(
+            token,
+            process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
+          ) as JwtPayload;
+        } catch (err) {
+          if (err instanceof JsonWebTokenError) {
+            return res.status(401).json({ message: "Invalid signature or token" });
+          }
+          return res.status(400).json({ message: "Could not verify token" });
+        }    
+    
 
     if (!verifyToken) {
       return res.status(400).json({ message: "Could not verify token" });
@@ -273,15 +282,23 @@ const validateAuthentication = async (
     if (isblacklisted)
       return res.status(401).json({ message: "Token is no longer valid" });
 
-    const verifiedToken = jsonwebtoken.verify(
-      headerToken,
-      process.env.RSA_PRIVATE_KEY || ""
-    ) as JwtPayload;
+    let verifyToken;
+        try {
+          verifyToken = jsonwebtoken.verify(
+            headerToken,
+            process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
+          ) as JwtPayload;
+        } catch (err) {
+          if (err instanceof JsonWebTokenError) {
+            return res.status(401).json({ message: "Invalid signature or token" });
+          }
+          return res.status(400).json({ message: "Could not verify token" });
+        }    
 
-    if (!verifiedToken)
+    if (!verifyToken)
       return res.status(403).json({ message: "Invalid Token" });
 
-    const authenticatedUser = await user.findById(verifiedToken.sub);
+    const authenticatedUser = await user.findById(verifyToken.sub);
 
     if (!authenticatedUser)
       return res.status(404).json({ message: "User not found" });

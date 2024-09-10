@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15,7 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logout = exports.validateAuthentication = exports.refreshToken = exports.appleAuth = exports.googleAuth = exports.login = exports.register = void 0;
 const authentication_1 = require("../../functions/authentication");
 const user_1 = __importDefault(require("../../../models/user"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const jsonwebtoken_1 = __importStar(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const redis_1 = require("../../../config/redis");
 const csrf_csrf_1 = require("../../../config/csrf-csrf");
@@ -173,7 +196,16 @@ const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             return res
                 .status(401)
                 .json({ message: "Token provided or refreshToken is invalid" });
-        const verifyToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_PRIVATE_KEY || "");
+        let verifyToken;
+        try {
+            verifyToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_PRIVATE_KEY || "");
+        }
+        catch (err) {
+            if (err instanceof jsonwebtoken_1.JsonWebTokenError) {
+                return res.status(401).json({ message: "Invalid signature or token" });
+            }
+            return res.status(400).json({ message: "Could not verify token" });
+        }
         if (!verifyToken) {
             return res.status(400).json({ message: "Could not verify token" });
         }
@@ -214,10 +246,19 @@ const validateAuthentication = (req, res, next) => __awaiter(void 0, void 0, voi
         const isblacklisted = yield redis_1.redis.get(`blacklist_${headerToken}`);
         if (isblacklisted)
             return res.status(401).json({ message: "Token is no longer valid" });
-        const verifiedToken = jsonwebtoken_1.default.verify(headerToken, process.env.RSA_PRIVATE_KEY || "");
-        if (!verifiedToken)
+        let verifyToken;
+        try {
+            verifyToken = jsonwebtoken_1.default.verify(headerToken, process.env.REFRESH_TOKEN_PRIVATE_KEY || "");
+        }
+        catch (err) {
+            if (err instanceof jsonwebtoken_1.JsonWebTokenError) {
+                return res.status(401).json({ message: "Invalid signature or token" });
+            }
+            return res.status(400).json({ message: "Could not verify token" });
+        }
+        if (!verifyToken)
             return res.status(403).json({ message: "Invalid Token" });
-        const authenticatedUser = yield user_1.default.findById(verifiedToken.sub);
+        const authenticatedUser = yield user_1.default.findById(verifyToken.sub);
         if (!authenticatedUser)
             return res.status(404).json({ message: "User not found" });
         req.user = authenticatedUser;
