@@ -40,6 +40,8 @@ describe("Register route handles registration logic", () => {
   });
 
   test("Register route returns 'User information updated successfully'", async () => {
+    expect.assertions(2);
+
     const req = mockRequest({
       firstname: "John",
       lastname: "Doe",
@@ -72,6 +74,8 @@ describe("Register route handles registration logic", () => {
   });
 
   test("Register route throws error and calls next", async () => {
+    expect.assertions(1);
+
     const req = mockRequest({
       firstname: "John",
       lastname: "Doe",
@@ -82,7 +86,9 @@ describe("Register route handles registration logic", () => {
     const res = mockResponse();
     const next = mockNext;
 
-    (user.findOne as jest.Mock<any>).mockRejectedValueOnce(new Error("Database error"));
+    (user.findOne as jest.Mock<any>).mockRejectedValueOnce(
+      new Error("Database error")
+    );
 
     await register(req as any, res as any, next);
 
@@ -91,11 +97,9 @@ describe("Register route handles registration logic", () => {
 });
 
 describe("Login route handles login logic", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   test("Login returns session data", async () => {
+    expect.assertions(3);
+
     const req = mockRequest({
       username: "testuser",
       password: "Password@123",
@@ -111,7 +115,6 @@ describe("Login route handles login logic", () => {
       userName: "testuser",
       hash: "hashedpassword",
       salt: "somesalt",
-      refreshToken: { value: "oldrefreshtoken", version: 0 },
       save: jest.fn(),
     };
 
@@ -122,10 +125,18 @@ describe("Login route handles login logic", () => {
     };
 
     (user.findOne as jest.Mock<any>).mockResolvedValueOnce(foundUser);
-    (authenticationModule.validatePassword as jest.Mock).mockReturnValueOnce(true);
+    (authenticationModule.validatePassword as jest.Mock).mockReturnValueOnce(
+      true
+    );
     (authenticationModule.issueJWT as jest.Mock).mockReturnValueOnce(token);
     (addCsrfToSession as jest.Mock<any>).mockImplementation(
-      (req: any, res: any, userSession: userSession) => userSession
+      (req: any, res: any, userSession: userSession) => {
+        userSession.auth_data = {
+          ...userSession.auth_data,
+          csrf: "somegeneratedcsrftoken",
+        };
+        return userSession;
+      }
     );
 
     await login(req as any, res as any, next);
@@ -141,14 +152,28 @@ describe("Login route handles login logic", () => {
         auth_data: expect.objectContaining({
           token: token.token,
           expires: token.expires,
-          refreshToken: token.refreshToken,
+          refreshToken: expect.objectContaining({
+            value: token.refreshToken.value,
+            version: 0,
+          }),
+          csrf: "somegeneratedcsrftoken",
         }),
       }),
     });
     expect(foundUser.save).toHaveBeenCalled();
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (user.findOne as jest.Mock).mockReset();
+    (authenticationModule.validatePassword as jest.Mock).mockReset();
+    (authenticationModule.issueJWT as jest.Mock).mockReset();
+    (addCsrfToSession as jest.Mock).mockReset();
+  });
+
   test("Login throws error when user is not found", async () => {
+    expect.assertions(2);
+
     const req = mockRequest({
       username: "testuser",
       password: "Password@123",
@@ -162,10 +187,20 @@ describe("Login route handles login logic", () => {
     await login(req as any, res as any, next);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith("User not found");
+    expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (user.findOne as jest.Mock).mockReset();
+    (authenticationModule.validatePassword as jest.Mock).mockReset();
+    (authenticationModule.issueJWT as jest.Mock).mockReset();
+    (addCsrfToSession as jest.Mock).mockReset();
   });
 
   test("Login throws error when password is incorrect", async () => {
+    expect.assertions(2);
+
     const req = mockRequest({
       username: "testuser",
       password: "Password@123",
@@ -183,11 +218,15 @@ describe("Login route handles login logic", () => {
     };
 
     (user.findOne as jest.Mock<any>).mockResolvedValueOnce(foundUser);
-    (authenticationModule.validatePassword as jest.Mock).mockReturnValueOnce(false);
+    (authenticationModule.validatePassword as jest.Mock).mockReturnValueOnce(
+      false
+    );
 
     await login(req as any, res as any, next);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith("username or password invalid");
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Username or password invalid",
+    });
   });
 });

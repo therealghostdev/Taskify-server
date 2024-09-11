@@ -97,11 +97,13 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const { username, password } = req.body;
         const found = yield user_1.default.findOne({ userName: username });
-        if (!found)
-            return res.status(404).json("User not found");
+        if (!found) {
+            return res.status(404).json({ message: "User not found" });
+        }
         const isValidUser = (0, authentication_1.validatePassword)(password, found.hash, found.salt);
-        if (!isValidUser)
-            return res.status(400).json("username or password invalid");
+        if (!isValidUser) {
+            return res.status(400).json({ message: "Username or password invalid" });
+        }
         let userSession = {
             _id: found._id,
             firstname: found.firstName,

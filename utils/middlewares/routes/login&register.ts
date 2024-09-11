@@ -78,12 +78,15 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     const { username, password } = req.body;
     const found = await user.findOne({ userName: username });
 
-    if (!found) return res.status(404).json("User not found");
+    if (!found) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const isValidUser = validatePassword(password, found.hash, found.salt);
 
-    if (!isValidUser)
-      return res.status(400).json("username or password invalid");
+    if (!isValidUser) {
+      return res.status(400).json({ message: "Username or password invalid" });
+    }
 
     let userSession: userSession = {
       _id: found._id,

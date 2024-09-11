@@ -67,6 +67,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         globals_1.jest.clearAllMocks();
     });
     (0, globals_1.test)("Register route returns 'User information updated successfully'", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
         const req = mockRequest({
             firstname: "John",
             lastname: "Doe",
@@ -92,6 +93,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         });
     }));
     (0, globals_1.test)("Register route throws error and calls next", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(1);
         const req = mockRequest({
             firstname: "John",
             lastname: "Doe",
@@ -106,10 +108,8 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
     }));
 });
 (0, globals_1.describe)("Login route handles login logic", () => {
-    (0, globals_1.beforeEach)(() => {
-        globals_1.jest.clearAllMocks();
-    });
     (0, globals_1.test)("Login returns session data", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(3);
         const req = mockRequest({
             username: "testuser",
             password: "Password@123",
@@ -123,7 +123,6 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
             userName: "testuser",
             hash: "hashedpassword",
             salt: "somesalt",
-            refreshToken: { value: "oldrefreshtoken", version: 0 },
             save: globals_1.jest.fn(),
         };
         const token = {
@@ -134,7 +133,10 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         user_1.default.findOne.mockResolvedValueOnce(foundUser);
         authenticationModule.validatePassword.mockReturnValueOnce(true);
         authenticationModule.issueJWT.mockReturnValueOnce(token);
-        csrf_csrf_1.addCsrfToSession.mockImplementation((req, res, userSession) => userSession);
+        csrf_csrf_1.addCsrfToSession.mockImplementation((req, res, userSession) => {
+            userSession.auth_data = Object.assign(Object.assign({}, userSession.auth_data), { csrf: "somegeneratedcsrftoken" });
+            return userSession;
+        });
         yield (0, login_register_1.login)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(200);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
@@ -147,13 +149,25 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
                 auth_data: globals_1.expect.objectContaining({
                     token: token.token,
                     expires: token.expires,
-                    refreshToken: token.refreshToken,
+                    refreshToken: globals_1.expect.objectContaining({
+                        value: token.refreshToken.value,
+                        version: 0,
+                    }),
+                    csrf: "somegeneratedcsrftoken",
                 }),
             }),
         });
         (0, globals_1.expect)(foundUser.save).toHaveBeenCalled();
     }));
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+        user_1.default.findOne.mockReset();
+        authenticationModule.validatePassword.mockReset();
+        authenticationModule.issueJWT.mockReset();
+        csrf_csrf_1.addCsrfToSession.mockReset();
+    });
     (0, globals_1.test)("Login throws error when user is not found", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
         const req = mockRequest({
             username: "testuser",
             password: "Password@123",
@@ -163,9 +177,17 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         user_1.default.findOne.mockResolvedValueOnce(null);
         yield (0, login_register_1.login)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
-        (0, globals_1.expect)(res.json).toHaveBeenCalledWith("User not found");
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
     }));
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+        user_1.default.findOne.mockReset();
+        authenticationModule.validatePassword.mockReset();
+        authenticationModule.issueJWT.mockReset();
+        csrf_csrf_1.addCsrfToSession.mockReset();
+    });
     (0, globals_1.test)("Login throws error when password is incorrect", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
         const req = mockRequest({
             username: "testuser",
             password: "Password@123",
@@ -183,6 +205,8 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         authenticationModule.validatePassword.mockReturnValueOnce(false);
         yield (0, login_register_1.login)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(400);
-        (0, globals_1.expect)(res.json).toHaveBeenCalledWith("username or password invalid");
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
+            message: "Username or password invalid",
+        });
     }));
 });
