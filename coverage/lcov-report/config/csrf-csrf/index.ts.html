@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for utils/functions/authentication.ts</title>
+    <title>Code coverage report for config/csrf-csrf/index.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">utils/functions</a> authentication.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">config/csrf-csrf</a> index.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.86% </span>
+                <span class="strong">37.93% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/23</span>
+                <span class='fraction'>11/29</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">7.14% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>1/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
-                <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55% </span>
+                <span class="strong">32% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>11/20</span>
+                <span class='fraction'>8/25</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -121,27 +121,14 @@
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a>
 <a name='L58'></a><a href='#L58'>58</a>
-<a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a>
-<a name='L66'></a><a href='#L66'>66</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L59'></a><a href='#L59'>59</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,114 +137,106 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import jsonwebtoken from "jsonwebtoken";
-import { userSession } from "../types";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { NextFunction, Request, Response } from "express";
+import { doubleCsrf } from "csrf-csrf";
+import { userSession } from "../../utils/types";
 import dotenv from "dotenv";
-import crypto from "crypto";
-import { redis } from "../../config/redis";
 &nbsp;
 dotenv.config();
 &nbsp;
-function <span class="fstat-no" title="function not covered" >issueJWT(</span>user: userSession) {
-  const _id = <span class="cstat-no" title="statement not covered" >user._id;</span>
-  const tokenVersion = <span class="cstat-no" title="statement not covered" >0;</span>
+const { doubleCsrfProtection, generateToken } = doubleCsrf({
+  getSecret: <span class="fstat-no" title="function not covered" >() =</span>&gt; <span class="cstat-no" title="statement not covered" >process.env.RSA_PRIVATE_KEY || "",</span>
+  cookieName: "__Host-psifi.x-csrf-token",
+  cookieOptions: {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? <span class="branch-0 cbranch-no" title="branch not covered" >"strict" </span>: "lax", // change this to lax for test production
+  },
+  getTokenFromRequest: <span class="fstat-no" title="function not covered" >(r</span>eq) =&gt; <span class="cstat-no" title="statement not covered" >req.headers["x-csrf-token"] as string,</span>
+});
 &nbsp;
-  const expiresIn = <span class="cstat-no" title="statement not covered" >"1d";</span>
+const handleCsrfError = <span class="fstat-no" title="function not covered" >(e</span>rr: Buffer, req: Request, res: Response) =&gt; {
+<span class="cstat-no" title="statement not covered" >  res.status(403).json({ error: "CSRF token validation failed" });</span>
+};
 &nbsp;
-  const payload = <span class="cstat-no" title="statement not covered" >{</span>
-    sub: _id,
-    iat: Date.now(),
-    version: tokenVersion,
-  };
+const csrfMiddleware = <span class="fstat-no" title="function not covered" >(r</span>eq: Request, res: Response, next: NextFunction) =&gt; {
+<span class="cstat-no" title="statement not covered" >  <span class="missing-if-branch" title="if path not taken" >I</span>if (!req.user) <span class="cstat-no" title="statement not covered" >return res.status(401).json({ message: "Unauthorized" });</span></span>
 &nbsp;
-  const PRIV_KEY = <span class="cstat-no" title="statement not covered" >process.env.RSA_PRIVATE_KEY;</span>
+  const headerToken = <span class="cstat-no" title="statement not covered" >req.headers["x-csrf-token"] as string;</span>
+  const cookieToken = <span class="cstat-no" title="statement not covered" >req.cookies["__Host-psifi.x-csrf-token"]?.split("|")[0];</span>
 &nbsp;
-  const signedToken = <span class="cstat-no" title="statement not covered" >jsonwebtoken.sign(payload, PRIV_KEY ? PRIV_KEY : "", {</span>
-    expiresIn: expiresIn,
-    algorithm: "RS256",
+<span class="cstat-no" title="statement not covered" >  <span class="missing-if-branch" title="if path not taken" >I</span>if (!headerToken || !cookieToken || headerToken !== cookieToken) {</span>
+<span class="cstat-no" title="statement not covered" >    console.error("CSRF token mismatch");</span>
+<span class="cstat-no" title="statement not covered" >    return res.status(403).json({ error: "CSRF token mismatch or missing" });</span>
+  }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  doubleCsrfProtection(req, res, <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (err) {</span>
+<span class="cstat-no" title="statement not covered" >      handleCsrfError(err, req, res);</span>
+<span class="cstat-no" title="statement not covered" >      console.log("csrf error", err);</span>
+<span class="cstat-no" title="statement not covered" >      next(err);</span>
+    }
+<span class="cstat-no" title="statement not covered" >    next();</span>
   });
+};
 &nbsp;
-  const refreshToken = <span class="cstat-no" title="statement not covered" >jsonwebtoken.sign(payload, PRIV_KEY ? PRIV_KEY : "", {</span>
-    algorithm: "RS256",
-    expiresIn: "7d",
-  });
-&nbsp;
+const addCsrfToSession = <span class="fstat-no" title="function not covered" >(</span>
+  req: Request,
+  res: Response,
+  session: userSession
+): userSession =&gt; {
+  const csrfToken = <span class="cstat-no" title="statement not covered" >generateToken(req, res, false);</span>
 <span class="cstat-no" title="statement not covered" >  return {</span>
-    refreshToken: { value: refreshToken, version: payload.version },
-    token: "Bearer " + signedToken,
-    expires: expiresIn,
-    csrf: "",
+    ...session,
+    auth_data: {
+      ...session.auth_data,
+      csrf: csrfToken,
+    },
   };
-}
+};
 &nbsp;
-function genPassword(password: string) {
-  const salt = crypto.randomBytes(32).toString("hex");
-  const genHash = crypto
-    .pbkdf2Sync(password, salt, 10000, 64, "sha512")
-    .toString("hex");
-&nbsp;
-  return {
-    salt: salt,
-    hash: genHash,
-  };
-}
-&nbsp;
-function validatePassword(password: string, hash: string, salt: string) {
-  const verify = crypto
-    .pbkdf2Sync(password, salt, 10000, 64, "sha512")
-    .toString("hex");
-&nbsp;
-  return hash === verify;
-}
-&nbsp;
-async function <span class="fstat-no" title="function not covered" >blacklistToken(</span>key: string, exp: number) {
-<span class="cstat-no" title="statement not covered" >  await redis.set(`blacklist_${key}`, "true", { EX: exp });</span>
-}
-&nbsp;
-export { issueJWT, genPassword, validatePassword, blacklistToken };
+export { generateToken, addCsrfToSession, handleCsrfError, csrfMiddleware };
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -265,7 +244,7 @@ export { issueJWT, genPassword, validatePassword, blacklistToken };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-09-11T19:39:30.096Z
+                at 2024-09-11T17:56:22.248Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

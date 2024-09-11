@@ -4,7 +4,7 @@ import { afterEach, beforeEach } from "node:test";
 import {
   genPassword,
   validatePassword,
-} from "../../utils/functions/authentication";
+} from "../../../utils/functions/authentication";
 import crypto from "crypto";
 
 jest.mock("jsonwebtoken");
