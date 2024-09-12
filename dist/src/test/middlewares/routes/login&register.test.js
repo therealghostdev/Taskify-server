@@ -43,6 +43,9 @@ const authenticationModule = __importStar(require("../../../../utils/functions/a
 const csrf_csrf_1 = require("../../../../config/csrf-csrf");
 // Mock request/response/next
 const mockRequest = (body) => ({ body });
+const mockGrequest = (user) => ({
+    user,
+});
 const mockResponse = () => {
     const res = {};
     res.status = globals_1.jest.fn().mockReturnValue(res);
@@ -217,9 +220,6 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         });
         (0, globals_1.test)("Authentication with google returns appropriate session data", () => __awaiter(void 0, void 0, void 0, function* () {
             globals_1.expect.assertions(3);
-            const mockGrequest = (user) => ({
-                user,
-            });
             const req = mockGrequest({
                 _id: "testuserid8728",
                 firstname: "testuser",
@@ -276,4 +276,45 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
             (0, globals_1.expect)(foundUser.save).toHaveBeenCalled();
         }));
     });
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+        user_1.default.findOne.mockReset();
+        authenticationModule.validatePassword.mockReset();
+        authenticationModule.issueJWT.mockReset();
+        csrf_csrf_1.addCsrfToSession.mockReset();
+    });
+    (0, globals_1.test)("Google authentication returns appropriate errors when no request session available", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
+        const req = mockGrequest(null);
+        const res = mockResponse();
+        const next = mockNext;
+        yield (0, login_register_1.googleAuth)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+    }));
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+    });
+    (0, globals_1.test)("Google authentication return appropriate error when user not found", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
+        const req = mockGrequest({
+            id: "testuserid8728",
+            firstname: "testuser",
+            lastname: "taskify",
+            username: "Googleuser99",
+            auth_data: {
+                token: "somerandomlygeneratedToken",
+                expires: "1d",
+                refreshToken: { value: "newrefreshtoken", version: 0 },
+                csrf: "",
+            },
+        });
+        const res = mockResponse();
+        const next = mockNext;
+        user_1.default.findOne.mockResolvedValueOnce(null);
+        yield (0, login_register_1.googleAuth)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
+    }));
+    afterEach(() => globals_1.jest.clearAllMocks());
 });

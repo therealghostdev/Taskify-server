@@ -13,6 +13,11 @@ import { Request, Response } from "express";
 
 // Mock request/response/next
 const mockRequest = (body: any) => ({ body });
+
+const mockGrequest = (user: any) => ({
+  user,
+});
+
 const mockResponse = () => {
   const res: any = {};
   res.status = jest.fn().mockReturnValue(res);
@@ -242,10 +247,6 @@ describe("Authentication via google login returns with necessary session data an
     test("Authentication with google returns appropriate session data", async () => {
       expect.assertions(3);
 
-      const mockGrequest = (user: any) => ({
-        user,
-      });
-
       const req = mockGrequest({
         _id: "testuserid8728",
         firstname: "testuser",
@@ -316,4 +317,58 @@ describe("Authentication via google login returns with necessary session data an
       expect(foundUser.save).toHaveBeenCalled();
     });
   });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (user.findOne as jest.Mock).mockReset();
+    (authenticationModule.validatePassword as jest.Mock).mockReset();
+    (authenticationModule.issueJWT as jest.Mock).mockReset();
+    (addCsrfToSession as jest.Mock).mockReset();
+  });
+
+  test("Google authentication returns appropriate errors when no request session available", async () => {
+    expect.assertions(2);
+
+    const req = mockGrequest(null);
+    const res = mockResponse();
+    const next = mockNext;
+
+    await googleAuth(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Google authentication return appropriate error when user not found", async () => {
+    expect.assertions(2);
+
+    const req = mockGrequest({
+      id: "testuserid8728",
+      firstname: "testuser",
+      lastname: "taskify",
+      username: "Googleuser99",
+      auth_data: {
+        token: "somerandomlygeneratedToken",
+        expires: "1d",
+        refreshToken: { value: "newrefreshtoken", version: 0 },
+        csrf: "",
+      },
+    });
+
+    const res = mockResponse();
+    const next = mockNext;
+
+    (user.findOne as jest.Mock<any>).mockResolvedValueOnce(null);
+
+    await googleAuth(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+  });
+
+  afterEach(() => jest.clearAllMocks());
 });
