@@ -210,3 +210,70 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         });
     }));
 });
+(0, globals_1.describe)("Authentication via google login returns with necessary session data and throws appropriate error", () => {
+    (0, globals_1.describe)("Authentication via google login returns with necessary session data and throws appropriate error", () => {
+        (0, globals_1.beforeEach)(() => {
+            globals_1.jest.clearAllMocks();
+        });
+        (0, globals_1.test)("Authentication with google returns appropriate session data", () => __awaiter(void 0, void 0, void 0, function* () {
+            globals_1.expect.assertions(3);
+            const mockGrequest = (user) => ({
+                user,
+            });
+            const req = mockGrequest({
+                _id: "testuserid8728",
+                firstname: "testuser",
+                lastname: "taskify",
+                username: "Googleuser99",
+                auth_data: {
+                    token: "somerandomlygeneratedToken",
+                    expires: "1d",
+                    refreshToken: { value: "newrefreshtoken", version: 0 },
+                    csrf: "",
+                },
+            });
+            const res = mockResponse();
+            const next = mockNext;
+            const foundUser = {
+                _id: "testuserid8728",
+                firstName: "testuser",
+                lastName: "taskify",
+                userName: "Googleuser99",
+                google_profile: [],
+                hash: "hashedpassword",
+                salt: "somesalt",
+                save: globals_1.jest.fn(),
+            };
+            const token = {
+                token: "somerandomlygeneratedToken",
+                expires: "1d",
+                refreshToken: { value: "newrefreshtoken", version: 0 },
+            };
+            user_1.default.findOne.mockResolvedValueOnce(foundUser);
+            authenticationModule.issueJWT.mockReturnValueOnce(token);
+            csrf_csrf_1.addCsrfToSession.mockImplementation((req, res, userSession) => {
+                return Object.assign(Object.assign({}, userSession), { auth_data: Object.assign(Object.assign({}, userSession.auth_data), { csrf: "somegeneratedcsrftoken" }) });
+            });
+            yield (0, login_register_1.googleAuth)(req, res, next);
+            (0, globals_1.expect)(res.status).toHaveBeenCalledWith(200);
+            (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
+                success: true,
+                userSession: globals_1.expect.objectContaining({
+                    _id: "testuserid8728",
+                    firstname: "testuser",
+                    lastname: "taskify",
+                    username: "Googleuser99",
+                    auth_data: globals_1.expect.objectContaining({
+                        token: "somerandomlygeneratedToken",
+                        expires: "1d",
+                        refreshToken: globals_1.expect.objectContaining({
+                            value: "newrefreshtoken",
+                            version: 0,
+                        }),
+                    }),
+                }),
+            });
+            (0, globals_1.expect)(foundUser.save).toHaveBeenCalled();
+        }));
+    });
+});

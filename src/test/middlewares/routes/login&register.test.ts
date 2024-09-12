@@ -3,11 +3,13 @@ import { test, expect, describe, jest, beforeEach } from "@jest/globals";
 import {
   register,
   login,
+  googleAuth,
 } from "../../../../utils/middlewares/routes/login&register";
 import user from "../../../../models/user";
 import * as authenticationModule from "../../../../utils/functions/authentication";
 import { addCsrfToSession } from "../../../../config/csrf-csrf";
 import { userSession } from "../../../../utils/types";
+import { Request, Response } from "express";
 
 // Mock request/response/next
 const mockRequest = (body: any) => ({ body });
@@ -227,6 +229,91 @@ describe("Login route handles login logic", () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
       message: "Username or password invalid",
+    });
+  });
+});
+
+describe("Authentication via google login returns with necessary session data and throws appropriate error", () => {
+  describe("Authentication via google login returns with necessary session data and throws appropriate error", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("Authentication with google returns appropriate session data", async () => {
+      expect.assertions(3);
+
+      const mockGrequest = (user: any) => ({
+        user,
+      });
+
+      const req = mockGrequest({
+        _id: "testuserid8728",
+        firstname: "testuser",
+        lastname: "taskify",
+        username: "Googleuser99",
+        auth_data: {
+          token: "somerandomlygeneratedToken",
+          expires: "1d",
+          refreshToken: { value: "newrefreshtoken", version: 0 },
+          csrf: "",
+        },
+      });
+
+      const res = mockResponse();
+      const next = mockNext;
+
+      const foundUser = {
+        _id: "testuserid8728",
+        firstName: "testuser",
+        lastName: "taskify",
+        userName: "Googleuser99",
+        google_profile: [],
+        hash: "hashedpassword",
+        salt: "somesalt",
+        save: jest.fn(),
+      };
+
+      const token = {
+        token: "somerandomlygeneratedToken",
+        expires: "1d",
+        refreshToken: { value: "newrefreshtoken", version: 0 },
+      };
+
+      (user.findOne as jest.Mock<any>).mockResolvedValueOnce(foundUser);
+      (authenticationModule.issueJWT as jest.Mock).mockReturnValueOnce(token);
+      (addCsrfToSession as jest.Mock<any>).mockImplementation(
+        (req: Request, res: Response, userSession: userSession) => {
+          return {
+            ...userSession,
+            auth_data: {
+              ...userSession.auth_data,
+              csrf: "somegeneratedcsrftoken",
+            },
+          };
+        }
+      );
+
+      await googleAuth(req as any, res as Response, next);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        userSession: expect.objectContaining({
+          _id: "testuserid8728",
+          firstname: "testuser",
+          lastname: "taskify",
+          username: "Googleuser99",
+          auth_data: expect.objectContaining({
+            token: "somerandomlygeneratedToken",
+            expires: "1d",
+            refreshToken: expect.objectContaining({
+              value: "newrefreshtoken",
+              version: 0,
+            }),
+          }),
+        }),
+      });
+      expect(foundUser.save).toHaveBeenCalled();
     });
   });
 });
