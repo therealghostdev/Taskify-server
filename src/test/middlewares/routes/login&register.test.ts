@@ -244,8 +244,6 @@ describe("Authentication via google login returns with necessary session data an
       jest.clearAllMocks();
     });
 
-    afterEach(() => jest.clearAllMocks());
-
     test("Authentication with google returns appropriate session data", async () => {
       expect.assertions(3);
 
