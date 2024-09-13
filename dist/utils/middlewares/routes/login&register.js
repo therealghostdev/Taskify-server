@@ -183,7 +183,7 @@ const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         const active_user = req.user;
         if (!active_user) {
-            return res.status(401).json("Unauthorized");
+            return res.status(401).json({ message: "Unauthorized" });
         }
         const currentUser = yield user_1.default.findById(active_user._id);
         const currentUserToken = (_a = currentUser === null || currentUser === void 0 ? void 0 : currentUser.refreshToken) === null || _a === void 0 ? void 0 : _a.value;

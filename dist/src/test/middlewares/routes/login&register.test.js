@@ -218,7 +218,6 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         (0, globals_1.beforeEach)(() => {
             globals_1.jest.clearAllMocks();
         });
-        afterEach(() => globals_1.jest.clearAllMocks());
         (0, globals_1.test)("Authentication with google returns appropriate session data", () => __awaiter(void 0, void 0, void 0, function* () {
             globals_1.expect.assertions(3);
             const req = mockGrequest({
@@ -316,5 +315,33 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         yield (0, login_register_1.googleAuth)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
+    }));
+});
+(0, globals_1.describe)("Refresh token returns a new token, blacklist previous token and returns appropriate errors", () => {
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+    });
+    (0, globals_1.test)("Refresh token return error when token not found", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
+        const req = mockRequest({ token: null });
+        const res = mockResponse();
+        const next = mockNext;
+        yield (0, login_register_1.refreshToken)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(400);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
+            message: "Token not provided or empty",
+        });
+    }));
+    (0, globals_1.test)("Refresh token returns appropriate error if authentication fails", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
+        const req = {
+            user: null,
+            body: { token: "someInvalidToken" },
+        };
+        const res = mockResponse();
+        const next = mockNext;
+        yield (0, login_register_1.refreshToken)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
     }));
 });

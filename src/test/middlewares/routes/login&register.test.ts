@@ -4,6 +4,7 @@ import {
   register,
   login,
   googleAuth,
+  refreshToken,
 } from "../../../../utils/middlewares/routes/login&register";
 import user from "../../../../models/user";
 import * as authenticationModule from "../../../../utils/functions/authentication";
@@ -368,5 +369,43 @@ describe("Authentication via google login returns with necessary session data an
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+  });
+});
+
+describe("Refresh token returns a new token, blacklist previous token and returns appropriate errors", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Refresh token return error when token not found", async () => {
+    expect.assertions(2);
+
+    const req = mockRequest({ token: null });
+    const res = mockResponse();
+    const next = mockNext;
+
+    await refreshToken(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Token not provided or empty",
+    });
+  });
+
+  test("Refresh token returns appropriate error if authentication fails", async () => {
+    expect.assertions(2);
+
+    const req = {
+      user: null,
+      body: { token: "someInvalidToken" },
+    };
+
+    const res = mockResponse();
+    const next = mockNext;
+
+    await refreshToken(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
   });
 });

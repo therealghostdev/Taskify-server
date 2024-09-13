@@ -187,7 +187,7 @@ const refreshToken = async (
     const active_user = req.user as userSession;
 
     if (!active_user) {
-      return res.status(401).json("Unauthorized");
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const currentUser = await user.findById(active_user._id);
