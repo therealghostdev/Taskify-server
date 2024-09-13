@@ -218,6 +218,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         (0, globals_1.beforeEach)(() => {
             globals_1.jest.clearAllMocks();
         });
+        afterEach(() => globals_1.jest.clearAllMocks());
         (0, globals_1.test)("Authentication with google returns appropriate session data", () => __awaiter(void 0, void 0, void 0, function* () {
             globals_1.expect.assertions(3);
             const req = mockGrequest({
@@ -316,5 +317,4 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
     }));
-    afterEach(() => globals_1.jest.clearAllMocks());
 });

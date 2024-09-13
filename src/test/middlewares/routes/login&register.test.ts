@@ -244,6 +244,8 @@ describe("Authentication via google login returns with necessary session data an
       jest.clearAllMocks();
     });
 
+    afterEach(() => jest.clearAllMocks());
+
     test("Authentication with google returns appropriate session data", async () => {
       expect.assertions(3);
 
@@ -369,6 +371,4 @@ describe("Authentication via google login returns with necessary session data an
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
   });
-
-  afterEach(() => jest.clearAllMocks());
 });
