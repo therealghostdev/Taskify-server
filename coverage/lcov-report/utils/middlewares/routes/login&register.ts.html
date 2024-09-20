@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">43.52% </span>
+                <span class="strong">47.64% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>74/170</span>
+                <span class='fraction'>81/170</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">24% </span>
+                <span class="strong">37.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>18/75</span>
+                <span class='fraction'>28/75</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">43.55% </span>
+                <span class="strong">47.85% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>71/163</span>
+                <span class='fraction'>78/163</span>
             </div>
         
             
@@ -611,37 +611,37 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -995,23 +995,23 @@ const refreshToken = async (
       return res.status(401).json({ message: "Unauthorized" });
     }
 &nbsp;
-    const currentUser = <span class="cstat-no" title="statement not covered" >await user.findById(active_user._id);</span>
-    const currentUserToken = <span class="cstat-no" title="statement not covered" >currentUser?.refreshToken?.value;</span>
+    const currentUser = await user.findById(active_user._id);
+    const currentUserToken = currentUser<span class="branch-0 cbranch-no" title="branch not covered" >?.r</span>efreshToken<span class="branch-0 cbranch-no" title="branch not covered" >?.v</span>alue;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!currentUser || !currentUser.refreshToken) {</span>
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!currentUser || !currentUser.refreshToken) {
 <span class="cstat-no" title="statement not covered" >      return res</span>
         .status(401)
         .json({ message: "Invalid user or no refresh token found" });
     }
 &nbsp;
-    const isblacklisted = <span class="cstat-no" title="statement not covered" >await redis.get(`blacklist_${token}`);</span>
+    const isblacklisted = await redis.get(`blacklist_${token}`);
 &nbsp;
-    const isblacklisted_current_token = <span class="cstat-no" title="statement not covered" >await redis.get(</span>
+    const isblacklisted_current_token = await redis.get(
       `blacklist_${currentUserToken}`
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (isblacklisted || isblacklisted_current_token)</span>
-<span class="cstat-no" title="statement not covered" >      return res</span>
+    if (isblacklisted || <span class="branch-1 cbranch-no" title="branch not covered" >isblacklisted_current_token)</span>
+      return res
         .status(401)
         .json({ message: "Token provided or refreshToken is invalid" });
 &nbsp;
@@ -1180,7 +1180,7 @@ export {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-09-13T15:25:48.874Z
+                at 2024-09-20T20:04:13.220Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

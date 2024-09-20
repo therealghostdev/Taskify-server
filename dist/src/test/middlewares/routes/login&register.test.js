@@ -36,11 +36,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable @typescript-eslint/no-explicit-any */
+globals_1.jest.mock("../../../../config/redis", () => ({
+    redis: {
+        get: globals_1.jest.fn(),
+        // Add other methods you might use, like set, del, etc.
+    },
+}));
 const globals_1 = require("@jest/globals");
 const login_register_1 = require("../../../../utils/middlewares/routes/login&register");
 const user_1 = __importDefault(require("../../../../models/user"));
 const authenticationModule = __importStar(require("../../../../utils/functions/authentication"));
 const csrf_csrf_1 = require("../../../../config/csrf-csrf");
+const redis_1 = require("../../../../config/redis");
 // Mock request/response/next
 const mockRequest = (body) => ({ body });
 const mockGrequest = (user) => ({
@@ -343,5 +350,88 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         yield (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
+    }));
+    (0, globals_1.beforeEach)(() => {
+        user_1.default.findById = globals_1.jest.fn();
+    });
+    (0, globals_1.test)("Refresh token blacklists token and return appropriate token error", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
+        const foundUser = {
+            _id: "testuserid8728",
+            firstName: "testuser",
+            lastName: "taskify",
+            userName: "Googleuser99",
+            google_profile: [],
+            hash: "hashedpassword",
+            salt: "somesalt",
+            refreshToken: {
+                value: "currentRefreshToken",
+                version: 1,
+            },
+        };
+        const req = {
+            user: {
+                _id: "testuserid8728",
+                firstname: "testuser",
+                lastname: "taskify",
+                username: "taskifyuser",
+            },
+            body: { token: "randomTokenvalue999" },
+            headers: {
+                Authorization: "Bearer randomTokenvalue999",
+            },
+        };
+        const res = mockResponse();
+        const next = globals_1.jest.fn();
+        user_1.default.findById.mockResolvedValue(foundUser);
+        redis_1.redis.get.mockResolvedValue("blacklist_randomTokenvalue999");
+        yield (0, login_register_1.refreshToken)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
+            message: "Token provided or refreshToken is invalid",
+        });
+    }));
+    afterEach(() => {
+        globals_1.jest.clearAllMocks();
+    });
+    (0, globals_1.beforeEach)(() => {
+        user_1.default.findById = globals_1.jest.fn();
+    });
+    (0, globals_1.test)("Refresh token returns appropriate error if current user refresh token is blacklisted", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(2);
+        const foundUser = {
+            _id: "testuserid8728",
+            firstName: "testuser",
+            lastName: "taskify",
+            userName: "Googleuser99",
+            google_profile: [],
+            hash: "hashedpassword",
+            salt: "somesalt",
+            refreshToken: {
+                value: "currentRefreshToken",
+                version: 1,
+            },
+        };
+        const req = {
+            user: {
+                _id: "testuserid8728",
+                firstname: "testuser",
+                lastname: "taskify",
+                username: "taskifyuser",
+            },
+            body: { token: "randomTokenvalue999" },
+            headers: {
+                Authorization: "Bearer randomTokenvalue999",
+            },
+        };
+        const res = mockResponse();
+        const next = mockNext;
+        user_1.default.findById.mockResolvedValue(foundUser);
+        redis_1.redis.get.mockResolvedValue("blacklist_currentRefreshToken");
+        yield (0, login_register_1.refreshToken)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
+            message: "Token provided or refreshToken is invalid",
+        });
     }));
 });

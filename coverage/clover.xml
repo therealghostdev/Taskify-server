@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1726241148928" clover="3.2.0">
-  <project timestamp="1726241148928" name="All files">
-    <metrics statements="193" coveredstatements="87" conditionals="83" coveredconditionals="19" methods="20" coveredmethods="10" elements="296" coveredelements="116" complexity="0" loc="193" ncloc="193" packages="3" files="3" classes="3"/>
+<coverage generated="1726862653277" clover="3.2.0">
+  <project timestamp="1726862653278" name="All files">
+    <metrics statements="193" coveredstatements="94" conditionals="83" coveredconditionals="29" methods="20" coveredmethods="10" elements="296" coveredelements="133" complexity="0" loc="193" ncloc="193" packages="3" files="3" classes="3"/>
     <package name="config.redis">
       <metrics statements="10" coveredstatements="5" conditionals="4" coveredconditionals="1" methods="1" coveredmethods="0"/>
       <file name="index.ts" path="/home/ghost_dev/Documents/repositories/my-projects/Taskify-server/config/redis/index.ts">
         <metrics statements="10" coveredstatements="5" conditionals="4" coveredconditionals="1" methods="1" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="2" count="2" type="stmt"/>
-        <line num="4" count="2" type="stmt"/>
-        <line num="6" count="2" type="stmt"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
         <line num="11" count="0" type="stmt"/>
         <line num="12" count="0" type="stmt"/>
         <line num="13" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="15" count="0" type="stmt"/>
         <line num="16" count="0" type="stmt"/>
-        <line num="20" count="2" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
       </file>
     </package>
     <package name="utils.functions">
@@ -45,9 +45,9 @@
       </file>
     </package>
     <package name="utils.middlewares.routes">
-      <metrics statements="163" coveredstatements="71" conditionals="75" coveredconditionals="18" methods="15" coveredmethods="8"/>
+      <metrics statements="163" coveredstatements="78" conditionals="75" coveredconditionals="28" methods="15" coveredmethods="8"/>
       <file name="login&register.ts" path="/home/ghost_dev/Documents/repositories/my-projects/Taskify-server/utils/middlewares/routes/login&register.ts">
-        <metrics statements="163" coveredstatements="71" conditionals="75" coveredconditionals="18" methods="15" coveredmethods="8"/>
+        <metrics statements="163" coveredstatements="78" conditionals="75" coveredconditionals="28" methods="15" coveredmethods="8"/>
         <line num="2" count="1" type="stmt"/>
         <line num="8" count="1" type="stmt"/>
         <line num="10" count="1" type="stmt"/>
@@ -123,22 +123,22 @@
         <line num="169" count="0" type="stmt"/>
         <line num="171" count="0" type="stmt"/>
         <line num="175" count="1" type="stmt"/>
-        <line num="179" count="2" type="stmt"/>
-        <line num="180" count="2" type="stmt"/>
-        <line num="181" count="2" type="stmt"/>
-        <line num="183" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="179" count="4" type="stmt"/>
+        <line num="180" count="4" type="stmt"/>
+        <line num="181" count="4" type="stmt"/>
+        <line num="183" count="4" type="cond" truecount="1" falsecount="0"/>
         <line num="184" count="1" type="stmt"/>
-        <line num="187" count="1" type="stmt"/>
-        <line num="189" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="187" count="3" type="stmt"/>
+        <line num="189" count="3" type="cond" truecount="1" falsecount="0"/>
         <line num="190" count="1" type="stmt"/>
-        <line num="193" count="0" type="stmt"/>
-        <line num="194" count="0" type="cond" truecount="0" falsecount="8"/>
-        <line num="196" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="193" count="2" type="stmt"/>
+        <line num="194" count="2" type="cond" truecount="6" falsecount="2"/>
+        <line num="196" count="2" type="cond" truecount="2" falsecount="1"/>
         <line num="197" count="0" type="stmt"/>
-        <line num="202" count="0" type="stmt"/>
-        <line num="204" count="0" type="stmt"/>
-        <line num="208" count="0" type="cond" truecount="0" falsecount="3"/>
-        <line num="209" count="0" type="stmt"/>
+        <line num="202" count="2" type="stmt"/>
+        <line num="204" count="2" type="stmt"/>
+        <line num="208" count="2" type="cond" truecount="2" falsecount="1"/>
+        <line num="209" count="2" type="stmt"/>
         <line num="214" count="0" type="stmt"/>
         <line num="215" count="0" type="stmt"/>
         <line num="220" count="0" type="cond" truecount="0" falsecount="1"/>
