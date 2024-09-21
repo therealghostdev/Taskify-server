@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1726862653277" clover="3.2.0">
-  <project timestamp="1726862653278" name="All files">
-    <metrics statements="193" coveredstatements="94" conditionals="83" coveredconditionals="29" methods="20" coveredmethods="10" elements="296" coveredelements="133" complexity="0" loc="193" ncloc="193" packages="3" files="3" classes="3"/>
+<coverage generated="1726925009144" clover="3.2.0">
+  <project timestamp="1726925009145" name="All files">
+    <metrics statements="193" coveredstatements="100" conditionals="83" coveredconditionals="35" methods="20" coveredmethods="10" elements="296" coveredelements="145" complexity="0" loc="193" ncloc="193" packages="3" files="3" classes="3"/>
     <package name="config.redis">
       <metrics statements="10" coveredstatements="5" conditionals="4" coveredconditionals="1" methods="1" coveredmethods="0"/>
       <file name="index.ts" path="/home/ghost_dev/Documents/repositories/my-projects/Taskify-server/config/redis/index.ts">
@@ -45,9 +45,9 @@
       </file>
     </package>
     <package name="utils.middlewares.routes">
-      <metrics statements="163" coveredstatements="78" conditionals="75" coveredconditionals="28" methods="15" coveredmethods="8"/>
+      <metrics statements="163" coveredstatements="84" conditionals="75" coveredconditionals="34" methods="15" coveredmethods="8"/>
       <file name="login&register.ts" path="/home/ghost_dev/Documents/repositories/my-projects/Taskify-server/utils/middlewares/routes/login&register.ts">
-        <metrics statements="163" coveredstatements="78" conditionals="75" coveredconditionals="28" methods="15" coveredmethods="8"/>
+        <metrics statements="163" coveredstatements="84" conditionals="75" coveredconditionals="34" methods="15" coveredmethods="8"/>
         <line num="2" count="1" type="stmt"/>
         <line num="8" count="1" type="stmt"/>
         <line num="10" count="1" type="stmt"/>
@@ -123,32 +123,32 @@
         <line num="169" count="0" type="stmt"/>
         <line num="171" count="0" type="stmt"/>
         <line num="175" count="1" type="stmt"/>
-        <line num="179" count="4" type="stmt"/>
-        <line num="180" count="4" type="stmt"/>
-        <line num="181" count="4" type="stmt"/>
-        <line num="183" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="179" count="5" type="stmt"/>
+        <line num="180" count="5" type="stmt"/>
+        <line num="181" count="5" type="stmt"/>
+        <line num="183" count="5" type="cond" truecount="1" falsecount="0"/>
         <line num="184" count="1" type="stmt"/>
-        <line num="187" count="3" type="stmt"/>
-        <line num="189" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="187" count="4" type="stmt"/>
+        <line num="189" count="4" type="cond" truecount="1" falsecount="0"/>
         <line num="190" count="1" type="stmt"/>
-        <line num="193" count="2" type="stmt"/>
-        <line num="194" count="2" type="cond" truecount="6" falsecount="2"/>
-        <line num="196" count="2" type="cond" truecount="2" falsecount="1"/>
+        <line num="193" count="3" type="stmt"/>
+        <line num="194" count="3" type="cond" truecount="6" falsecount="2"/>
+        <line num="196" count="3" type="cond" truecount="2" falsecount="1"/>
         <line num="197" count="0" type="stmt"/>
-        <line num="202" count="2" type="stmt"/>
-        <line num="204" count="2" type="stmt"/>
-        <line num="208" count="2" type="cond" truecount="2" falsecount="1"/>
+        <line num="202" count="3" type="stmt"/>
+        <line num="204" count="3" type="stmt"/>
+        <line num="208" count="3" type="cond" truecount="3" falsecount="0"/>
         <line num="209" count="2" type="stmt"/>
-        <line num="214" count="0" type="stmt"/>
-        <line num="215" count="0" type="stmt"/>
+        <line num="214" count="1" type="stmt"/>
+        <line num="215" count="1" type="stmt"/>
         <line num="220" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="221" count="0" type="stmt"/>
         <line num="223" count="0" type="stmt"/>
-        <line num="226" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="226" count="1" type="cond" truecount="0" falsecount="1"/>
         <line num="227" count="0" type="stmt"/>
-        <line num="230" count="0" type="cond" truecount="0" falsecount="4"/>
-        <line num="232" count="0" type="cond" truecount="0" falsecount="1"/>
-        <line num="233" count="0" type="stmt"/>
+        <line num="230" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="232" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="233" count="1" type="stmt"/>
         <line num="236" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="237" count="0" type="stmt"/>
         <line num="238" count="0" type="stmt"/>

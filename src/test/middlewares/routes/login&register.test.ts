@@ -1,11 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-jest.mock("../../../../config/redis", () => ({
-  redis: {
-    get: jest.fn(),
-    // Add other methods you might use, like set, del, etc.
-  },
-}));
-
 import { test, expect, describe, jest, beforeEach } from "@jest/globals";
 import {
   register,
@@ -18,8 +11,18 @@ import * as authenticationModule from "../../../../utils/functions/authenticatio
 import { addCsrfToSession } from "../../../../config/csrf-csrf";
 import { userSession } from "../../../../utils/types";
 import { Request, Response } from "express";
-import { blacklistToken } from "../../../../utils/functions/authentication";
+import { verify, JsonWebTokenError } from "jsonwebtoken";
 import { redis } from "../../../../config/redis";
+
+jest.mock("jsonwebtoken", () => ({
+  verify: jest.fn(),
+}));
+
+jest.mock("../../../../config/redis", () => ({
+  redis: {
+    get: jest.fn(),
+  },
+}));
 
 // Mock request/response/next
 const mockRequest = (body: any) => ({ body });
@@ -447,9 +450,6 @@ describe("Refresh token returns a new token, blacklist previous token and return
         username: "taskifyuser",
       },
       body: { token: "randomTokenvalue999" },
-      headers: {
-        Authorization: "Bearer randomTokenvalue999",
-      },
     };
 
     const res = mockResponse();
@@ -502,9 +502,6 @@ describe("Refresh token returns a new token, blacklist previous token and return
         username: "taskifyuser",
       },
       body: { token: "randomTokenvalue999" },
-      headers: {
-        Authorization: "Bearer randomTokenvalue999",
-      },
     };
 
     const res = mockResponse();
@@ -521,6 +518,69 @@ describe("Refresh token returns a new token, blacklist previous token and return
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       message: "Token provided or refreshToken is invalid",
+    });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (verify as jest.Mock).mockReset();
+    (user.findById as jest.Mock).mockReset();
+    (redis.get as jest.Mock).mockReset();
+  });
+
+  test("RefreshToken returns appropriate error when provided token is invalid", async () => {
+    expect.assertions(2);
+
+    const foundUser = {
+      _id: "testuserid8728",
+      firstName: "testuser",
+      lastName: "taskify",
+      userName: "Googleuser99",
+      google_profile: [],
+      hash: "hashedpassword",
+      salt: "somesalt",
+      refreshToken: {
+        value: "currentRefreshToken",
+        version: 1,
+      },
+    };
+
+    const req = {
+      user: {
+        _id: "testuserid8728",
+        firstname: "testuser",
+        lastname: "taskify",
+        username: "taskifyuser",
+      },
+      body: {
+        token: "randomInvalidTokenValue999",
+      },
+    };
+
+    const res = mockResponse();
+    const next = mockNext;
+
+    (user.findById as jest.Mock<any>).mockResolvedValue(foundUser);
+
+    (redis.get as jest.Mock<any>).mockResolvedValue(null);
+
+    (verify as jest.Mock<any>).mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      async (token: any, secret: any) => {
+        try {
+          console.log(token);
+        } catch (error) {
+          throw new JsonWebTokenError("Invalid signature or token");
+        }
+      }
+    );
+
+    await refreshToken(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Invalid refresh token",
     });
   });
 });
