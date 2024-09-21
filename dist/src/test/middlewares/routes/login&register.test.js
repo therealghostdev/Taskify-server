@@ -358,7 +358,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
     (0, globals_1.beforeEach)(() => {
         user_1.default.findById = globals_1.jest.fn();
     });
-    (0, globals_1.test)("Refresh token blacklists token and return appropriate token error", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Refresh token blacklists token and return appropriate token error", () => __awaiter(void 0, void 0, void 0, function () {
         globals_1.expect.assertions(2);
         const foundUser = {
             _id: "testuserid8728",
@@ -386,7 +386,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const next = globals_1.jest.fn();
         user_1.default.findById.mockResolvedValue(foundUser);
         redis_1.redis.get.mockResolvedValue("blacklist_randomTokenvalue999");
-        yield (0, login_register_1.refreshToken)(req, res, next);
+        __awaiter (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Token provided or refreshToken is invalid",
@@ -396,7 +396,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         globals_1.jest.clearAllMocks();
         user_1.default.findById = globals_1.jest.fn();
     });
-    (0, globals_1.test)("Refresh token returns appropriate error if current user refresh token is blacklisted", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Refresh token returns appropriate error if current user refresh token is blacklisted", () => __awaiter(void 0, void 0, void 0, async function () {
         globals_1.expect.assertions(2);
         const foundUser = {
             _id: "testuserid8728",
@@ -424,7 +424,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const next = mockNext;
         user_1.default.findById.mockResolvedValue(foundUser);
         redis_1.redis.get.mockResolvedValue("blacklist_currentRefreshToken");
-        yield (0, login_register_1.refreshToken)(req, res, next);
+        __awaiter (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Token provided or refreshToken is invalid",
@@ -466,14 +466,16 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const next = mockNext;
         user_1.default.findById.mockResolvedValue(foundUser);
         redis_1.redis.get.mockResolvedValue(null);
+        jsonwebtoken_1.verify.mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        jsonwebtoken_1.verify.mockImplementation(async (token, secret) => {
+        (token, secret) => __awaiter(void 0, void 0, void 0, function () {
             try {
                 console.log(token);
-            } catch (error) {
+            }
+            catch (error) {
                 throw new jsonwebtoken_1.JsonWebTokenError("Invalid signature or token");
             }
-        });
+        }));
         yield (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(403);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
