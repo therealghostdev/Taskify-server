@@ -53,6 +53,7 @@ globals_1.jest.mock("../../../../config/redis", () => ({
 }));
 // Mock request/response/next
 const mockRequest = (body) => ({ body });
+const mockValRequest = (headers) => ({ headers });
 const mockGrequest = (user) => ({
     user,
 });
@@ -481,6 +482,127 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(403);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Invalid refresh token",
+        });
+    }));
+});
+(0, globals_1.describe)("ValidateAuthentication returns appropriate responses", () => {
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+        jsonwebtoken_1.verify.mockReset();
+        user_1.default.findById.mockReset();
+        redis_1.redis.get.mockReset();
+    });
+    (0, globals_1.test)("validateAuthentication returns appropriate error when token header not present", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(9);
+        const req = mockValRequest({});
+        const res = mockResponse();
+        const next = mockNext;
+        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "unauthorized" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(403);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "Invalid Token" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(400);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Could not verify token",
+        });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(404);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Token is no longer valid",
+        });
+    }));
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+    });
+    (0, globals_1.test)("validateAuthentication returns appropriate error when token is blacklisted", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(9);
+        const req = mockValRequest({
+            authorization: "Bearer somerandomblacklistedtoken",
+        });
+        const res = mockResponse();
+        const next = mockNext;
+        redis_1.redis.get.mockResolvedValue("blacklist_somerandomblacklistedtoken");
+        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
+            message: "Token is no longer valid",
+        });
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "unauthorized" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(403);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "Invalid Token" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(400);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Could not verify token",
+        });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(404);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
+    }));
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+        redis_1.redis.get.mockReset();
+    });
+    (0, globals_1.test)("validateAuthentication returns appropriate error when header token is not valid", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(9);
+        const req = mockValRequest({
+            authorization: "Bearer somerandomtoken",
+        });
+        const res = mockResponse();
+        const next = mockNext;
+        redis_1.redis.get.mockResolvedValue(null);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        jsonwebtoken_1.verify.mockImplementation((token, secret) => {
+            try {
+                console.log(token);
+            }
+            catch (err) {
+                throw new jsonwebtoken_1.JsonWebTokenError("Invalid signature or token");
+            }
+        });
+        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Token is no longer valid",
+        });
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "unauthorized" });
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(403);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "Invalid Token" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(400);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Could not verify token",
+        });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(404);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
+    }));
+    (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
+        redis_1.redis.get.mockReset();
+        jsonwebtoken_1.verify.mockReset();
+    });
+    (0, globals_1.test)("validateAuthentication returns appropriate error when user is not found", () => __awaiter(void 0, void 0, void 0, function* () {
+        globals_1.expect.assertions(9);
+        const req = mockValRequest({
+            authorization: "Bearer somerandomtoken",
+        });
+        const res = mockResponse();
+        const next = mockNext;
+        redis_1.redis.get.mockResolvedValue(null);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        jsonwebtoken_1.verify.mockReturnValue({ sub: "someuserid" });
+        user_1.default.findById.mockResolvedValueOnce(false);
+        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
+        (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(401);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Token is no longer valid",
+        });
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "unauthorized" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(403);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "Invalid Token" });
+        (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(400);
+        (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
+            message: "Could not verify token",
         });
     }));
 });

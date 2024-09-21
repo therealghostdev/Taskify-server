@@ -5,6 +5,7 @@ import {
   login,
   googleAuth,
   refreshToken,
+  validateAuthentication,
 } from "../../../../utils/middlewares/routes/login&register";
 import user from "../../../../models/user";
 import * as authenticationModule from "../../../../utils/functions/authentication";
@@ -26,6 +27,8 @@ jest.mock("../../../../config/redis", () => ({
 
 // Mock request/response/next
 const mockRequest = (body: any) => ({ body });
+
+const mockValRequest = (headers: any) => ({ headers });
 
 const mockGrequest = (user: any) => ({
   user,
@@ -581,6 +584,152 @@ describe("Refresh token returns a new token, blacklist previous token and return
 
     expect(res.json).toHaveBeenCalledWith({
       message: "Invalid refresh token",
+    });
+  });
+});
+
+describe("ValidateAuthentication returns appropriate responses", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (verify as jest.Mock).mockReset();
+    (user.findById as jest.Mock).mockReset();
+    (redis.get as jest.Mock).mockReset();
+  });
+
+  test("validateAuthentication returns appropriate error when token header not present", async () => {
+    expect.assertions(9);
+
+    const req = mockValRequest({});
+    const res = mockResponse();
+    const next = mockNext;
+
+    await validateAuthentication(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: "unauthorized" });
+    expect(res.status).not.toHaveBeenCalledWith(403);
+    expect(res.json).not.toHaveBeenCalledWith({ message: "Invalid Token" });
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Could not verify token",
+    });
+    expect(res.status).not.toHaveBeenCalledWith(404);
+    expect(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Token is no longer valid",
+    });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("validateAuthentication returns appropriate error when token is blacklisted", async () => {
+    expect.assertions(9);
+
+    const req = mockValRequest({
+      authorization: "Bearer somerandomblacklistedtoken",
+    });
+    const res = mockResponse();
+    const next = mockNext;
+
+    (redis.get as jest.Mock<any>).mockResolvedValue(
+      "blacklist_somerandomblacklistedtoken"
+    );
+    await validateAuthentication(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Token is no longer valid",
+    });
+    expect(res.json).not.toHaveBeenCalledWith({ message: "unauthorized" });
+    expect(res.status).not.toHaveBeenCalledWith(403);
+    expect(res.json).not.toHaveBeenCalledWith({ message: "Invalid Token" });
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Could not verify token",
+    });
+    expect(res.status).not.toHaveBeenCalledWith(404);
+    expect(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (redis.get as jest.Mock).mockReset();
+  });
+
+  test("validateAuthentication returns appropriate error when header token is not valid", async () => {
+    expect.assertions(9);
+    const req = mockValRequest({
+      authorization: "Bearer somerandomtoken",
+    });
+    const res = mockResponse();
+    const next = mockNext;
+
+    (redis.get as jest.Mock<any>).mockResolvedValue(null);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (verify as jest.Mock).mockImplementation((token: any, secret: any) => {
+      try {
+        console.log(token);
+      } catch (err) {
+        throw new JsonWebTokenError("Invalid signature or token");
+      }
+    });
+
+    await validateAuthentication(req as any, res as any, next);
+
+    expect(res.status).not.toHaveBeenCalledWith(401);
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Token is no longer valid",
+    });
+    expect(res.json).not.toHaveBeenCalledWith({ message: "unauthorized" });
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ message: "Invalid Token" });
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Could not verify token",
+    });
+    expect(res.status).not.toHaveBeenCalledWith(404);
+    expect(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (redis.get as jest.Mock).mockReset();
+    (verify as jest.Mock).mockReset();
+  });
+
+  test("validateAuthentication returns appropriate error when user is not found", async () => {
+    expect.assertions(9);
+    const req = mockValRequest({
+      authorization: "Bearer somerandomtoken",
+    });
+
+    const res = mockResponse();
+    const next = mockNext;
+
+    (redis.get as jest.Mock<any>).mockResolvedValue(null);
+
+    (verify as jest.Mock<any>).mockReturnValue({ sub: "someuserid" });
+
+    (user.findById as jest.Mock<any>).mockResolvedValueOnce(false);
+
+    await validateAuthentication(req as any, res as any, next);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: "User not found" });
+
+    expect(res.status).not.toHaveBeenCalledWith(401);
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Token is no longer valid",
+    });
+    expect(res.json).not.toHaveBeenCalledWith({ message: "unauthorized" });
+    expect(res.status).not.toHaveBeenCalledWith(403);
+    expect(res.json).not.toHaveBeenCalledWith({ message: "Invalid Token" });
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(res.json).not.toHaveBeenCalledWith({
+      message: "Could not verify token",
     });
   });
 });
