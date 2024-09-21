@@ -466,16 +466,14 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const next = mockNext;
         user_1.default.findById.mockResolvedValue(foundUser);
         redis_1.redis.get.mockResolvedValue(null);
-        jsonwebtoken_1.verify.mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (token, secret) => __awaiter(void 0, void 0, void 0, function () {
+        jsonwebtoken_1.verify.mockImplementation(async (token, secret) => {
             try {
                 console.log(token);
-            }
-            catch (error) {
+            } catch (error) {
                 throw new jsonwebtoken_1.JsonWebTokenError("Invalid signature or token");
             }
-        }));
+        });
         yield (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(403);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
