@@ -22,15 +22,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -80,7 +71,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
     });
-    (0, globals_1.test)("Register route returns 'User information updated successfully'", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Register route returns 'User information updated successfully'", async () => {
         globals_1.expect.assertions(2);
         const req = mockRequest({
             firstname: "John",
@@ -100,13 +91,13 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
             salt: "mockedSalt",
             hash: "mockedHash",
         });
-        yield (0, login_register_1.register)(req, res, next);
+        await (0, login_register_1.register)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(200);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "User information updated successfully",
         });
-    }));
-    (0, globals_1.test)("Register route throws error and calls next", () => __awaiter(void 0, void 0, void 0, function* () {
+    });
+    (0, globals_1.test)("Register route throws error and calls next", async () => {
         globals_1.expect.assertions(1);
         const req = mockRequest({
             firstname: "John",
@@ -117,12 +108,12 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const res = mockResponse();
         const next = mockNext;
         user_1.default.findOne.mockRejectedValueOnce(new Error("Database error"));
-        yield (0, login_register_1.register)(req, res, next);
+        await (0, login_register_1.register)(req, res, next);
         (0, globals_1.expect)(next).toHaveBeenCalledWith(globals_1.expect.any(Error));
-    }));
+    });
 });
 (0, globals_1.describe)("Login route handles login logic", () => {
-    (0, globals_1.test)("Login returns session data", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Login returns session data", async () => {
         globals_1.expect.assertions(3);
         const req = mockRequest({
             username: "testuser",
@@ -148,10 +139,13 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         authenticationModule.validatePassword.mockReturnValueOnce(true);
         authenticationModule.issueJWT.mockReturnValueOnce(token);
         csrf_csrf_1.addCsrfToSession.mockImplementation((req, res, userSession) => {
-            userSession.auth_data = Object.assign(Object.assign({}, userSession.auth_data), { csrf: "somegeneratedcsrftoken" });
+            userSession.auth_data = {
+                ...userSession.auth_data,
+                csrf: "somegeneratedcsrftoken",
+            };
             return userSession;
         });
-        yield (0, login_register_1.login)(req, res, next);
+        await (0, login_register_1.login)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(200);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             success: true,
@@ -172,7 +166,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
             }),
         });
         (0, globals_1.expect)(foundUser.save).toHaveBeenCalled();
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
         user_1.default.findOne.mockReset();
@@ -180,7 +174,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         authenticationModule.issueJWT.mockReset();
         csrf_csrf_1.addCsrfToSession.mockReset();
     });
-    (0, globals_1.test)("Login throws error when user is not found", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Login throws error when user is not found", async () => {
         globals_1.expect.assertions(2);
         const req = mockRequest({
             username: "testuser",
@@ -189,10 +183,10 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const res = mockResponse();
         const next = mockNext;
         user_1.default.findOne.mockResolvedValueOnce(null);
-        yield (0, login_register_1.login)(req, res, next);
+        await (0, login_register_1.login)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
         user_1.default.findOne.mockReset();
@@ -200,7 +194,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         authenticationModule.issueJWT.mockReset();
         csrf_csrf_1.addCsrfToSession.mockReset();
     });
-    (0, globals_1.test)("Login throws error when password is incorrect", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Login throws error when password is incorrect", async () => {
         globals_1.expect.assertions(2);
         const req = mockRequest({
             username: "testuser",
@@ -217,19 +211,19 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         };
         user_1.default.findOne.mockResolvedValueOnce(foundUser);
         authenticationModule.validatePassword.mockReturnValueOnce(false);
-        yield (0, login_register_1.login)(req, res, next);
+        await (0, login_register_1.login)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(400);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Username or password invalid",
         });
-    }));
+    });
 });
 (0, globals_1.describe)("Authentication via google login returns with necessary session data and throws appropriate error", () => {
     (0, globals_1.describe)("Authentication via google login returns with necessary session data and throws appropriate error", () => {
         (0, globals_1.beforeEach)(() => {
             globals_1.jest.clearAllMocks();
         });
-        (0, globals_1.test)("Authentication with google returns appropriate session data", () => __awaiter(void 0, void 0, void 0, function* () {
+        (0, globals_1.test)("Authentication with google returns appropriate session data", async () => {
             globals_1.expect.assertions(3);
             const req = mockGrequest({
                 _id: "testuserid8728",
@@ -263,9 +257,15 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
             user_1.default.findOne.mockResolvedValueOnce(foundUser);
             authenticationModule.issueJWT.mockReturnValueOnce(token);
             csrf_csrf_1.addCsrfToSession.mockImplementation((req, res, userSession) => {
-                return Object.assign(Object.assign({}, userSession), { auth_data: Object.assign(Object.assign({}, userSession.auth_data), { csrf: "somegeneratedcsrftoken" }) });
+                return {
+                    ...userSession,
+                    auth_data: {
+                        ...userSession.auth_data,
+                        csrf: "somegeneratedcsrftoken",
+                    },
+                };
             });
-            yield (0, login_register_1.googleAuth)(req, res, next);
+            await (0, login_register_1.googleAuth)(req, res, next);
             (0, globals_1.expect)(res.status).toHaveBeenCalledWith(200);
             (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
                 success: true,
@@ -285,7 +285,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
                 }),
             });
             (0, globals_1.expect)(foundUser.save).toHaveBeenCalled();
-        }));
+        });
     });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
@@ -294,19 +294,19 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         authenticationModule.issueJWT.mockReset();
         csrf_csrf_1.addCsrfToSession.mockReset();
     });
-    (0, globals_1.test)("Google authentication returns appropriate errors when no request session available", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Google authentication returns appropriate errors when no request session available", async () => {
         globals_1.expect.assertions(2);
         const req = mockGrequest(null);
         const res = mockResponse();
         const next = mockNext;
-        yield (0, login_register_1.googleAuth)(req, res, next);
+        await (0, login_register_1.googleAuth)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
     });
-    (0, globals_1.test)("Google authentication return appropriate error when user not found", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Google authentication return appropriate error when user not found", async () => {
         globals_1.expect.assertions(2);
         const req = mockGrequest({
             id: "testuserid8728",
@@ -323,27 +323,27 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const res = mockResponse();
         const next = mockNext;
         user_1.default.findOne.mockResolvedValueOnce(null);
-        yield (0, login_register_1.googleAuth)(req, res, next);
+        await (0, login_register_1.googleAuth)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
-    }));
+    });
 });
 (0, globals_1.describe)("Refresh token returns a new token, blacklist previous token and returns appropriate errors", () => {
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
     });
-    (0, globals_1.test)("Refresh token return error when token not found", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("Refresh token return error when token not found", async () => {
         globals_1.expect.assertions(2);
         const req = mockRequest({ token: null });
         const res = mockResponse();
         const next = mockNext;
-        yield (0, login_register_1.refreshToken)(req, res, next);
+        await (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(400);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Token not provided or empty",
         });
-    }));
-    (0, globals_1.test)("Refresh token returns appropriate error if authentication fails", () => __awaiter(void 0, void 0, void 0, function* () {
+    });
+    (0, globals_1.test)("Refresh token returns appropriate error if authentication fails", async () => {
         globals_1.expect.assertions(2);
         const req = {
             user: null,
@@ -351,14 +351,14 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         };
         const res = mockResponse();
         const next = mockNext;
-        yield (0, login_register_1.refreshToken)(req, res, next);
+        await (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "Unauthorized" });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         user_1.default.findById = globals_1.jest.fn();
     });
-    (0, globals_1.test)("Refresh token blacklists token and return appropriate token error", () => __awaiter(void 0, void 0, void 0, function () {
+    (0, globals_1.test)("Refresh token blacklists token and return appropriate token error", async () => {
         globals_1.expect.assertions(2);
         const foundUser = {
             _id: "testuserid8728",
@@ -386,17 +386,17 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const next = globals_1.jest.fn();
         user_1.default.findById.mockResolvedValue(foundUser);
         redis_1.redis.get.mockResolvedValue("blacklist_randomTokenvalue999");
-        __awaiter (0, login_register_1.refreshToken)(req, res, next);
+        await (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Token provided or refreshToken is invalid",
         });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
         user_1.default.findById = globals_1.jest.fn();
     });
-    (0, globals_1.test)("Refresh token returns appropriate error if current user refresh token is blacklisted", () => __awaiter(void 0, void 0, void 0, async function () {
+    (0, globals_1.test)("Refresh token returns appropriate error if current user refresh token is blacklisted", async () => {
         globals_1.expect.assertions(2);
         const foundUser = {
             _id: "testuserid8728",
@@ -424,19 +424,19 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const next = mockNext;
         user_1.default.findById.mockResolvedValue(foundUser);
         redis_1.redis.get.mockResolvedValue("blacklist_currentRefreshToken");
-        __awaiter (0, login_register_1.refreshToken)(req, res, next);
+        await (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Token provided or refreshToken is invalid",
         });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
         jsonwebtoken_1.verify.mockReset();
         user_1.default.findById.mockReset();
         redis_1.redis.get.mockReset();
     });
-    (0, globals_1.test)("RefreshToken returns appropriate error when provided token is invalid", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("RefreshToken returns appropriate error when provided token is invalid", async () => {
         globals_1.expect.assertions(2);
         const foundUser = {
             _id: "testuserid8728",
@@ -468,20 +468,20 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         redis_1.redis.get.mockResolvedValue(null);
         jsonwebtoken_1.verify.mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (token, secret) => __awaiter(void 0, void 0, void 0, function () {
+        async (token, secret) => {
             try {
                 console.log(token);
             }
             catch (error) {
                 throw new jsonwebtoken_1.JsonWebTokenError("Invalid signature or token");
             }
-        }));
-        yield (0, login_register_1.refreshToken)(req, res, next);
+        });
+        await (0, login_register_1.refreshToken)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(403);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Invalid refresh token",
         });
-    }));
+    });
 });
 (0, globals_1.describe)("ValidateAuthentication returns appropriate responses", () => {
     (0, globals_1.beforeEach)(() => {
@@ -490,12 +490,12 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         user_1.default.findById.mockReset();
         redis_1.redis.get.mockReset();
     });
-    (0, globals_1.test)("validateAuthentication returns appropriate error when token header not present", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("validateAuthentication returns appropriate error when token header not present", async () => {
         globals_1.expect.assertions(9);
         const req = mockValRequest({});
         const res = mockResponse();
         const next = mockNext;
-        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        await (0, login_register_1.validateAuthentication)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "unauthorized" });
         (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(403);
@@ -509,11 +509,11 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
             message: "Token is no longer valid",
         });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
     });
-    (0, globals_1.test)("validateAuthentication returns appropriate error when token is blacklisted", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("validateAuthentication returns appropriate error when token is blacklisted", async () => {
         globals_1.expect.assertions(9);
         const req = mockValRequest({
             authorization: "Bearer somerandomblacklistedtoken",
@@ -521,7 +521,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const res = mockResponse();
         const next = mockNext;
         redis_1.redis.get.mockResolvedValue("blacklist_somerandomblacklistedtoken");
-        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        await (0, login_register_1.validateAuthentication)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({
             message: "Token is no longer valid",
@@ -535,12 +535,12 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         });
         (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
         redis_1.redis.get.mockReset();
     });
-    (0, globals_1.test)("validateAuthentication returns appropriate error when header token is not valid", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("validateAuthentication returns appropriate error when header token is not valid", async () => {
         globals_1.expect.assertions(9);
         const req = mockValRequest({
             authorization: "Bearer somerandomtoken",
@@ -557,7 +557,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
                 throw new jsonwebtoken_1.JsonWebTokenError("Invalid signature or token");
             }
         });
-        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        await (0, login_register_1.validateAuthentication)(req, res, next);
         (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(401);
         (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
             message: "Token is no longer valid",
@@ -571,13 +571,13 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         });
         (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({ message: "User not found" });
-    }));
+    });
     (0, globals_1.beforeEach)(() => {
         globals_1.jest.clearAllMocks();
         redis_1.redis.get.mockReset();
         jsonwebtoken_1.verify.mockReset();
     });
-    (0, globals_1.test)("validateAuthentication returns appropriate error when user is not found", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, globals_1.test)("validateAuthentication returns appropriate error when user is not found", async () => {
         globals_1.expect.assertions(9);
         const req = mockValRequest({
             authorization: "Bearer somerandomtoken",
@@ -587,7 +587,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         redis_1.redis.get.mockResolvedValue(null);
         jsonwebtoken_1.verify.mockReturnValue({ sub: "someuserid" });
         user_1.default.findById.mockResolvedValueOnce(false);
-        yield (0, login_register_1.validateAuthentication)(req, res, next);
+        await (0, login_register_1.validateAuthentication)(req, res, next);
         (0, globals_1.expect)(res.status).toHaveBeenCalledWith(404);
         (0, globals_1.expect)(res.json).toHaveBeenCalledWith({ message: "User not found" });
         (0, globals_1.expect)(res.status).not.toHaveBeenCalledWith(401);
@@ -601,5 +601,5 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         (0, globals_1.expect)(res.json).not.toHaveBeenCalledWith({
             message: "Could not verify token",
         });
-    }));
+    });
 });

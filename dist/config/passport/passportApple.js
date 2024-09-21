@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -38,55 +29,54 @@ passport_1.default.use(new passport_apple_1.default({
     privateKeyString: process.env.RSA_PRIVATE_KEY || "",
     callbackURL: "/taskify/v1/auth/apple/callback",
     passReqToCallback: true,
-}, (req, accessToken, refreshToken, idToken, profile, done) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+}, async (req, accessToken, refreshToken, idToken, profile, done) => {
     try {
         console.log(`Apple profile: ${profile}`);
         let foundUser;
         const username = req.query.state;
         if (username && username !== "") {
-            foundUser = yield user_1.default.findOne({ userName: username });
+            foundUser = await user_1.default.findOne({ userName: username });
         }
         else {
-            foundUser = yield user_1.default.findOne({
+            foundUser = await user_1.default.findOne({
                 "apple_profile.id": profile.id,
             });
         }
         // also find user by mail on this line
         if (!foundUser) {
             const newUser = new user_1.default({
-                firstName: ((_a = profile.name) === null || _a === void 0 ? void 0 : _a.firstName) || "",
-                lastName: ((_b = profile.name) === null || _b === void 0 ? void 0 : _b.lastName) || "",
+                firstName: profile.name?.firstName || "",
+                lastName: profile.name?.lastName || "",
                 userName: profile.email || `apple-user-${Date.now()}`,
                 appleProfile: {
                     id: profile.id,
                     email: profile.email,
-                    displayName: ((_c = profile.name) === null || _c === void 0 ? void 0 : _c.firstName) || "",
+                    displayName: profile.name?.firstName || "",
                 },
                 salt: "taskify",
                 hash: "taskify",
                 createdAt: Date.now(),
             });
-            yield newUser.save();
+            await newUser.save();
             return done(null, createUserSession(newUser));
         }
         // Update Apple profile if necessary
         const updatedAppleProfile = {
             id: profile.id,
             email: profile.email,
-            displayName: ((_d = profile.name) === null || _d === void 0 ? void 0 : _d.firstName) || `taskify-user-${Date.now()}`,
+            displayName: profile.name?.firstName || `taskify-user-${Date.now()}`,
         };
         const appleProfileIndex = foundUser.appleProfile.findIndex((p) => p.id === profile.id);
         if (appleProfileIndex === -1 || foundUser.appleProfile.length === 0) {
             foundUser.appleProfile.push(updatedAppleProfile);
         }
-        const updatedUser = yield user_1.default.findByIdAndUpdate(foundUser._id, { appleProfile: foundUser.appleProfile }, { new: true });
+        const updatedUser = await user_1.default.findByIdAndUpdate(foundUser._id, { appleProfile: foundUser.appleProfile }, { new: true });
         return done(null, createUserSession(updatedUser || foundUser));
     }
     catch (err) {
         done(err);
     }
-})));
+}));
 passport_1.default.serializeUser((user, done) => {
     const sessionUser = createUserSession(user);
     done(null, sessionUser);

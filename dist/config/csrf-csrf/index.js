@@ -22,11 +22,10 @@ const handleCsrfError = (err, req, res) => {
 };
 exports.handleCsrfError = handleCsrfError;
 const csrfMiddleware = (req, res, next) => {
-    var _a;
     if (!req.user)
         return res.status(401).json({ message: "Unauthorized" });
     const headerToken = req.headers["x-csrf-token"];
-    const cookieToken = (_a = req.cookies["__Host-psifi.x-csrf-token"]) === null || _a === void 0 ? void 0 : _a.split("|")[0];
+    const cookieToken = req.cookies["__Host-psifi.x-csrf-token"]?.split("|")[0];
     if (!headerToken || !cookieToken || headerToken !== cookieToken) {
         console.error("CSRF token mismatch");
         return res.status(403).json({ error: "CSRF token mismatch or missing" });
@@ -43,6 +42,12 @@ const csrfMiddleware = (req, res, next) => {
 exports.csrfMiddleware = csrfMiddleware;
 const addCsrfToSession = (req, res, session) => {
     const csrfToken = generateToken(req, res, false);
-    return Object.assign(Object.assign({}, session), { auth_data: Object.assign(Object.assign({}, session.auth_data), { csrf: csrfToken }) });
+    return {
+        ...session,
+        auth_data: {
+            ...session.auth_data,
+            csrf: csrfToken,
+        },
+    };
 };
 exports.addCsrfToSession = addCsrfToSession;
