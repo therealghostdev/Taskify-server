@@ -472,11 +472,8 @@ describe("Refresh token returns a new token, blacklist previous token and return
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   beforeEach(() => {
+    jest.clearAllMocks();
     (user.findById as jest.Mock) = jest.fn();
   });
 

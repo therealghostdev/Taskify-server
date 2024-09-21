@@ -392,10 +392,8 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
             message: "Token provided or refreshToken is invalid",
         });
     }));
-    afterEach(() => {
-        globals_1.jest.clearAllMocks();
-    });
     (0, globals_1.beforeEach)(() => {
+        globals_1.jest.clearAllMocks();
         user_1.default.findById = globals_1.jest.fn();
     });
     (0, globals_1.test)("Refresh token returns appropriate error if current user refresh token is blacklisted", () => __awaiter(void 0, void 0, void 0, function* () {
@@ -470,7 +468,7 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         redis_1.redis.get.mockResolvedValue(null);
         jsonwebtoken_1.verify.mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (token, secret) => __awaiter(void 0, void 0, void 0, function* () {
+        (token, secret) => __awaiter(void 0, void 0, void 0, function () {
             try {
                 console.log(token);
             }
@@ -587,7 +585,6 @@ globals_1.jest.mock("../../../../config/csrf-csrf", () => ({
         const res = mockResponse();
         const next = mockNext;
         redis_1.redis.get.mockResolvedValue(null);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         jsonwebtoken_1.verify.mockReturnValue({ sub: "someuserid" });
         user_1.default.findById.mockResolvedValueOnce(false);
         yield (0, login_register_1.validateAuthentication)(req, res, next);
