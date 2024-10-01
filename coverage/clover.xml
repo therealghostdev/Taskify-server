@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1726933633873" clover="3.2.0">
-  <project timestamp="1726933633873" name="All files">
-    <metrics statements="193" coveredstatements="113" conditionals="83" coveredconditionals="44" methods="20" coveredmethods="12" elements="296" coveredelements="169" complexity="0" loc="193" ncloc="193" packages="3" files="3" classes="3"/>
+<coverage generated="1726945347385" clover="3.2.0">
+  <project timestamp="1726945347386" name="All files">
+    <metrics statements="191" coveredstatements="111" conditionals="61" coveredconditionals="28" methods="13" coveredmethods="7" elements="265" coveredelements="146" complexity="0" loc="191" ncloc="191" packages="3" files="3" classes="3"/>
     <package name="config.redis">
       <metrics statements="10" coveredstatements="5" conditionals="4" coveredconditionals="1" methods="1" coveredmethods="0"/>
       <file name="index.ts" path="/home/ghost_dev/Documents/repositories/my-projects/Taskify-server/config/redis/index.ts">
@@ -45,9 +45,9 @@
       </file>
     </package>
     <package name="utils.middlewares.routes">
-      <metrics statements="163" coveredstatements="97" conditionals="75" coveredconditionals="43" methods="15" coveredmethods="10"/>
+      <metrics statements="161" coveredstatements="95" conditionals="53" coveredconditionals="27" methods="8" coveredmethods="5"/>
       <file name="login&register.ts" path="/home/ghost_dev/Documents/repositories/my-projects/Taskify-server/utils/middlewares/routes/login&register.ts">
-        <metrics statements="163" coveredstatements="97" conditionals="75" coveredconditionals="43" methods="15" coveredmethods="10"/>
+        <metrics statements="161" coveredstatements="95" conditionals="53" coveredconditionals="27" methods="8" coveredmethods="5"/>
         <line num="2" count="1" type="stmt"/>
         <line num="8" count="1" type="stmt"/>
         <line num="10" count="1" type="stmt"/>
@@ -55,7 +55,7 @@
         <line num="12" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
         <line num="15" count="1" type="stmt"/>
-        <line num="17" count="2" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
         <line num="18" count="2" type="stmt"/>
         <line num="19" count="2" type="stmt"/>
         <line num="21" count="2" type="stmt"/>
@@ -73,7 +73,7 @@
         <line num="68" count="1" type="cond" truecount="1" falsecount="2"/>
         <line num="69" count="0" type="stmt"/>
         <line num="72" count="1" type="stmt"/>
-        <line num="76" count="3" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
         <line num="77" count="3" type="stmt"/>
         <line num="78" count="3" type="stmt"/>
         <line num="79" count="3" type="stmt"/>
@@ -92,10 +92,10 @@
         <line num="112" count="1" type="stmt"/>
         <line num="114" count="1" type="stmt"/>
         <line num="116" count="0" type="stmt"/>
-        <line num="120" count="3" type="stmt"/>
+        <line num="120" count="1" type="stmt"/>
         <line num="121" count="3" type="stmt"/>
         <line num="122" count="3" type="stmt"/>
-        <line num="124" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="124" count="3" type="stmt"/>
         <line num="126" count="3" type="cond" truecount="1" falsecount="0"/>
         <line num="127" count="1" type="stmt"/>
         <line num="130" count="2" type="cond" truecount="1" falsecount="0"/>
@@ -123,7 +123,6 @@
         <line num="169" count="0" type="stmt"/>
         <line num="171" count="0" type="stmt"/>
         <line num="175" count="1" type="stmt"/>
-        <line num="179" count="5" type="stmt"/>
         <line num="180" count="5" type="stmt"/>
         <line num="181" count="5" type="stmt"/>
         <line num="183" count="5" type="cond" truecount="1" falsecount="0"/>
@@ -132,7 +131,7 @@
         <line num="189" count="4" type="cond" truecount="1" falsecount="0"/>
         <line num="190" count="1" type="stmt"/>
         <line num="193" count="3" type="stmt"/>
-        <line num="194" count="3" type="cond" truecount="6" falsecount="2"/>
+        <line num="194" count="3" type="stmt"/>
         <line num="196" count="3" type="cond" truecount="2" falsecount="1"/>
         <line num="197" count="0" type="stmt"/>
         <line num="202" count="3" type="stmt"/>
@@ -146,7 +145,7 @@
         <line num="223" count="0" type="stmt"/>
         <line num="226" count="1" type="cond" truecount="0" falsecount="1"/>
         <line num="227" count="0" type="stmt"/>
-        <line num="230" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="230" count="1" type="cond" truecount="1" falsecount="1"/>
         <line num="232" count="1" type="cond" truecount="1" falsecount="0"/>
         <line num="233" count="1" type="stmt"/>
         <line num="236" count="0" type="cond" truecount="0" falsecount="1"/>
@@ -164,9 +163,8 @@
         <line num="266" count="0" type="stmt"/>
         <line num="268" count="0" type="stmt"/>
         <line num="272" count="1" type="stmt"/>
-        <line num="276" count="4" type="stmt"/>
         <line num="277" count="4" type="stmt"/>
-        <line num="278" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="278" count="4" type="stmt"/>
         <line num="280" count="4" type="cond" truecount="1" falsecount="0"/>
         <line num="282" count="3" type="stmt"/>
         <line num="284" count="3" type="cond" truecount="1" falsecount="0"/>
@@ -186,7 +184,7 @@
         <line num="314" count="1" type="stmt"/>
         <line num="315" count="0" type="stmt"/>
         <line num="316" count="0" type="stmt"/>
-        <line num="318" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="318" count="0" type="stmt"/>
         <line num="320" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="321" count="0" type="stmt"/>
         <line num="322" count="0" type="cond" truecount="0" falsecount="2"/>
