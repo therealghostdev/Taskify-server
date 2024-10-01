@@ -35,32 +35,32 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Pull latest Docker image
-        run: docker pull therealghostdev/taskify:latest
+        run: |
+          docker pull therealghostdev/taskify:latest || true
 
       - name: Get the latest version
         id: get_version
         run: |
-          CURRENT_VERSION=$(docker inspect --format '{{ index .RepoTags 0 }}' therealghostdev/taskify | sed 's/.*://')
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+          # Get the latest version from Docker Hub (if available)
+          CURRENT_VERSION=$(docker inspect --format='{{index .RepoTags 0}}' therealghostdev/taskify:latest 2>/dev/null | sed 's/.*://')
+          if [ -z "$CURRENT_VERSION" ]; then
+            # If no current version, start at 1.0
+            NEW_VERSION="1.0"
+          else
+            # Increment the version
+            NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+          fi
           echo "::set-output name=new_version::$NEW_VERSION"
-        shell: bash
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            therealghostdev/taskify:latest
-            therealghostdev/taskify:${{ steps.get_version.outputs.new_version }}
+      - name: Build Docker image
+        run: |
+          docker build -t therealghostdev/taskify:latest .
 
+      - name: Tag the new version
+        run: |
+          docker tag therealghostdev/taskify:latest therealghostdev/taskify:${{ steps.get_version.outputs.new_version }}
 
-
-
-#   deploy:
-#     runs-on: ubuntu-latest
-#     needs: [build, test]
-#     steps:
-#       - name: Deploy to Production
-#         run: |
-#           echo "Deploying to production server"
+      - name: Push the Docker images
+        run: |
+          docker push therealghostdev/taskify:latest
+          docker push therealghostdev/taskify:${{ steps.get_version.outputs.new_version }}
