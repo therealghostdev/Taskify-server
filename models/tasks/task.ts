@@ -4,7 +4,7 @@ import { Schema, model } from "mongoose";
 const taskSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  priority: { type: String, required: true },
+  priority: { type: Number, required: true },
   category: { type: String, required: true },
   duration: Number,
   expected_completion_time: { type: Date, required: true },

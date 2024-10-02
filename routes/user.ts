@@ -1,13 +1,16 @@
-import express, { NextFunction, Request, Response, Router } from "express";
+import express, { Router } from "express";
 import { validateAuthentication } from "../utils/middlewares/routes/login&register";
 import { csrfMiddleware } from "../config/csrf-csrf";
-import { addTask } from "../utils/middlewares/routes/task";
-import { validateTasksRequest } from "../utils/middlewares/validators/functions";
+import { addTask, getTask } from "../utils/middlewares/routes/task";
+import {
+  validateTasksRequest,
+  validateTasksRequestQparam,
+} from "../utils/middlewares/validators/functions";
 
 export const userRoute: Router = express.Router();
 
 userRoute.post(
-  "/add",
+  "/task",
   validateAuthentication,
   csrfMiddleware,
   validateTasksRequest,
@@ -15,14 +18,9 @@ userRoute.post(
 );
 
 userRoute.get(
-  "/add",
+  "/task",
   validateAuthentication,
   csrfMiddleware,
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      res.status(200).json("Hello");
-    } catch (err) {
-      next(err);
-    }
-  }
+  validateTasksRequestQparam,
+  getTask
 );

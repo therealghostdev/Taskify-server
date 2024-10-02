@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
+exports.validateTaskQuery = exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
 const joi_1 = __importDefault(require("joi"));
 const validateUserReg = joi_1.default.object({
     username: joi_1.default.string().required(),
@@ -43,3 +43,8 @@ const validateTask = joi_1.default.object({
     expected_completion_time: joi_1.default.date().required(),
 });
 exports.validateTask = validateTask;
+const validateTaskQuery = joi_1.default.object({
+    filter_by_date: joi_1.default.date().iso().required(),
+    status: joi_1.default.string().valid("complete", "incomplete"),
+});
+exports.validateTaskQuery = validateTaskQuery;

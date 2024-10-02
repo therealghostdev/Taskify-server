@@ -46,4 +46,9 @@ const validateTask = joi.object({
   expected_completion_time: joi.date().required(),
 });
 
-export { validateUserReg, validateUserLogin, validateTask };
+const validateTaskQuery = joi.object({
+  filter_by_date: joi.date().iso().required(),
+  status: joi.string().valid("complete", "incomplete"),
+});
+
+export { validateUserReg, validateUserLogin, validateTask, validateTaskQuery };
