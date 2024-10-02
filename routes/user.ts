@@ -2,10 +2,17 @@ import express, { NextFunction, Request, Response, Router } from "express";
 import { validateAuthentication } from "../utils/middlewares/routes/login&register";
 import { csrfMiddleware } from "../config/csrf-csrf";
 import { addTask } from "../utils/middlewares/routes/task";
+import { validateTasksRequest } from "../utils/middlewares/validators/functions";
 
 export const userRoute: Router = express.Router();
 
-userRoute.post("/add", validateAuthentication, csrfMiddleware, addTask);
+userRoute.post(
+  "/add",
+  validateAuthentication,
+  csrfMiddleware,
+  validateTasksRequest,
+  addTask
+);
 
 userRoute.get(
   "/add",

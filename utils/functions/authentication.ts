@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import jsonwebtoken from "jsonwebtoken";
 import { userSession } from "../types";
 import dotenv from "dotenv";
@@ -58,8 +59,33 @@ function validatePassword(password: string, hash: string, salt: string) {
   return hash === verify;
 }
 
+const createUserSession = (user: any): userSession => {
+  console.log("This function ran");
+  const data = {
+    _id: user._id,
+    firstname: user.firstName,
+    lastname: user.lastName,
+    username: user.userName,
+    auth_data: {
+      token: "",
+      expires: "",
+      refreshToken: { value: "", version: 0 },
+      csrf: "",
+    },
+  };
+  console.log("You should get this:", data);
+
+  return data;
+};
+
 async function blacklistToken(key: string, exp: number) {
   await redis.set(`blacklist_${key}`, "true", { EX: exp });
 }
 
-export { issueJWT, genPassword, validatePassword, blacklistToken };
+export {
+  issueJWT,
+  genPassword,
+  validatePassword,
+  blacklistToken,
+  createUserSession,
+};

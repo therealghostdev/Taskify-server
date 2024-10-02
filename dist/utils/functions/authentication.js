@@ -3,10 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createUserSession = void 0;
 exports.issueJWT = issueJWT;
 exports.genPassword = genPassword;
 exports.validatePassword = validatePassword;
 exports.blacklistToken = blacklistToken;
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -53,6 +55,24 @@ function validatePassword(password, hash, salt) {
         .toString("hex");
     return hash === verify;
 }
+const createUserSession = (user) => {
+    console.log("This function ran");
+    const data = {
+        _id: user._id,
+        firstname: user.firstName,
+        lastname: user.lastName,
+        username: user.userName,
+        auth_data: {
+            token: "",
+            expires: "",
+            refreshToken: { value: "", version: 0 },
+            csrf: "",
+        },
+    };
+    console.log("You should get this:", data);
+    return data;
+};
+exports.createUserSession = createUserSession;
 async function blacklistToken(key, exp) {
     await redis_1.redis.set(`blacklist_${key}`, "true", { EX: exp });
 }

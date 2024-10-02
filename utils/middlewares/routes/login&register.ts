@@ -4,6 +4,7 @@ import {
   issueJWT,
   validatePassword,
   blacklistToken,
+  createUserSession,
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { CookieOptions, userSession } from "../../types";
@@ -304,7 +305,7 @@ const validateAuthentication = async (
     if (!authenticatedUser)
       return res.status(404).json({ message: "User not found" });
 
-    req.user = authenticatedUser;
+    req.user = createUserSession(authenticatedUser);
     next();
   } catch (err) {
     next(err);

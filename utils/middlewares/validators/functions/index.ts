@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { validateUserReg, validateUserLogin } from "../schema";
+import { validateUserReg, validateUserLogin, validateTask } from "../schema";
 
 const validateRegisterRequest = (
   req: Request,
@@ -27,4 +27,16 @@ const validateLoginRequest = (
   next();
 };
 
-export { validateRegisterRequest, validateLoginRequest };
+const validateTasksRequest = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { error } = validateTask.validate(req.body);
+
+  if (error) return res.status(400).json({ message: error.details[0].message });
+
+  next();
+};
+
+export { validateRegisterRequest, validateLoginRequest, validateTasksRequest };

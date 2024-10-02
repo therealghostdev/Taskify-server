@@ -1,9 +1,7 @@
 import joi from "joi";
 
 const validateUserReg = joi.object({
-  username: joi
-    .string()
-    .required(),
+  username: joi.string().required(),
   firstname: joi
     .string()
     .min(3)
@@ -28,9 +26,7 @@ const validateUserReg = joi.object({
 });
 
 const validateUserLogin = joi.object({
-  username: joi
-    .string()
-    .required(),
+  username: joi.string().required(),
   password: joi
     .string()
     .pattern(
@@ -42,4 +38,12 @@ const validateUserLogin = joi.object({
     .required(),
 });
 
-export { validateUserReg, validateUserLogin };
+const validateTask = joi.object({
+  name: joi.string().required(),
+  description: joi.string().required(),
+  priority: joi.number().required(),
+  category: joi.string().required(),
+  expected_completion_time: joi.date().required(),
+});
+
+export { validateUserReg, validateUserLogin, validateTask };

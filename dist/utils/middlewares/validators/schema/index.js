@@ -3,12 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateUserLogin = exports.validateUserReg = void 0;
+exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
 const joi_1 = __importDefault(require("joi"));
 const validateUserReg = joi_1.default.object({
-    username: joi_1.default
-        .string()
-        .required(),
+    username: joi_1.default.string().required(),
     firstname: joi_1.default
         .string()
         .min(3)
@@ -29,9 +27,7 @@ const validateUserReg = joi_1.default.object({
 });
 exports.validateUserReg = validateUserReg;
 const validateUserLogin = joi_1.default.object({
-    username: joi_1.default
-        .string()
-        .required(),
+    username: joi_1.default.string().required(),
     password: joi_1.default
         .string()
         .pattern(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])(?=.*[0-9a-zA-Z]).{8,}$/)
@@ -39,3 +35,11 @@ const validateUserLogin = joi_1.default.object({
         .required(),
 });
 exports.validateUserLogin = validateUserLogin;
+const validateTask = joi_1.default.object({
+    name: joi_1.default.string().required(),
+    description: joi_1.default.string().required(),
+    priority: joi_1.default.number().required(),
+    category: joi_1.default.string().required(),
+    expected_completion_time: joi_1.default.date().required(),
+});
+exports.validateTask = validateTask;

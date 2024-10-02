@@ -252,7 +252,7 @@ const validateAuthentication = async (req, res, next) => {
         const authenticatedUser = await user_1.default.findById(verifyToken.sub);
         if (!authenticatedUser)
             return res.status(404).json({ message: "User not found" });
-        req.user = authenticatedUser;
+        req.user = (0, authentication_1.createUserSession)(authenticatedUser);
         next();
     }
     catch (err) {

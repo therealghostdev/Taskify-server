@@ -2,6 +2,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import user from "../../models/user";
 import { PassportStatic } from "passport";
 import dotenv from "dotenv";
+import { createUserSession } from "../../utils/functions/authentication";
 
 import {
   passportOptionTypes,
@@ -18,6 +19,7 @@ const options: passportOptionTypes = {
   algorithms: ["RS256"],
 };
 
+// This strategy is currently not in use
 export default (passport: PassportStatic) => {
   passport.use(
     new JwtStrategy(options, function (
@@ -31,7 +33,7 @@ export default (passport: PassportStatic) => {
             return done(err, false);
           }
           if (user) {
-            return done(null, user);
+            return done(null, createUserSession(user));
           } else {
             return done(null, false);
           }
