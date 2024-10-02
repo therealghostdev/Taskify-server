@@ -47,5 +47,6 @@ const userSchema = new mongoose_1.Schema({
     salt: { type: String, required: true },
     refreshToken: { value: String, version: Number },
     createdAt: { type: Date, required: true },
+    tasks: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "tasks" }],
 });
 exports.default = mongoose_1.default.model("User", userSchema);

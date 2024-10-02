@@ -23,6 +23,7 @@ const userSchema = new Schema({
   salt: { type: String, required: true },
   refreshToken: { value: String, version: Number },
   createdAt: { type: Date, required: true },
+  tasks: [{ type: Schema.Types.ObjectId, ref: "tasks" }],
 });
 
 export default mongoose.model("User", userSchema);
