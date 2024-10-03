@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import task from "../../../models/tasks/task";
 import user from "../../../models/user";
 import { userSession } from "../../types";
+import {
+  cacheTaskData,
+  getCacheTaskData,
+} from "../../functions/authentication";
 
 const addTask = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -66,6 +70,12 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!foundTask || foundTask.length === 0)
       return res.status(404).json({ message: "task not found" });
+
+    const cached = await getCacheTaskData(foundUser.tasks.toString());
+    if (cached && foundUser.tasks.length === cached.length)
+      return res.status(200).json({ message: "Successful", data: cached });
+
+    await cacheTaskData(foundUser.tasks.toString(), JSON.stringify(foundTask));
     res.status(200).json({ message: "Successful", data: foundTask });
   } catch (err) {
     console.log(err);

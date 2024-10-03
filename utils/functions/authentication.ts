@@ -60,7 +60,6 @@ function validatePassword(password: string, hash: string, salt: string) {
 }
 
 const createUserSession = (user: any): userSession => {
-  console.log("This function ran");
   const data = {
     _id: user._id,
     firstname: user.firstName,
@@ -73,13 +72,20 @@ const createUserSession = (user: any): userSession => {
       csrf: "",
     },
   };
-  console.log("You should get this:", data);
-
   return data;
 };
 
 async function blacklistToken(key: string, exp: number) {
   await redis.set(`blacklist_${key}`, "true", { EX: exp });
+}
+
+async function cacheTaskData(key: string, data: string) {
+  await redis.set(`cache_task${key}`, data);
+}
+
+async function getCacheTaskData(key: string) {
+  const cachedData = await redis.get(`cache_task${key}`);
+  return cachedData ? JSON.parse(cachedData) : null;
 }
 
 export {
@@ -88,4 +94,6 @@ export {
   validatePassword,
   blacklistToken,
   createUserSession,
+  cacheTaskData,
+  getCacheTaskData,
 };

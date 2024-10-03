@@ -8,6 +8,8 @@ exports.issueJWT = issueJWT;
 exports.genPassword = genPassword;
 exports.validatePassword = validatePassword;
 exports.blacklistToken = blacklistToken;
+exports.cacheTaskData = cacheTaskData;
+exports.getCacheTaskData = getCacheTaskData;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -56,7 +58,6 @@ function validatePassword(password, hash, salt) {
     return hash === verify;
 }
 const createUserSession = (user) => {
-    console.log("This function ran");
     const data = {
         _id: user._id,
         firstname: user.firstName,
@@ -69,10 +70,16 @@ const createUserSession = (user) => {
             csrf: "",
         },
     };
-    console.log("You should get this:", data);
     return data;
 };
 exports.createUserSession = createUserSession;
 async function blacklistToken(key, exp) {
     await redis_1.redis.set(`blacklist_${key}`, "true", { EX: exp });
+}
+async function cacheTaskData(key, data) {
+    await redis_1.redis.set(`cache_task${key}`, data);
+}
+async function getCacheTaskData(key) {
+    const cachedData = await redis_1.redis.get(`cache_task${key}`);
+    return cachedData ? JSON.parse(cachedData) : null;
 }

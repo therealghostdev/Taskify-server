@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTask = exports.addTask = void 0;
 const task_1 = __importDefault(require("../../../models/tasks/task"));
 const user_1 = __importDefault(require("../../../models/user"));
+const authentication_1 = require("../../functions/authentication");
 const addTask = async (req, res, next) => {
     try {
         const { name, description, priority, category, expected_completion_time } = req.body;
@@ -57,6 +58,10 @@ const getTask = async (req, res, next) => {
         });
         if (!foundTask || foundTask.length === 0)
             return res.status(404).json({ message: "task not found" });
+        const cached = await (0, authentication_1.getCacheTaskData)(foundUser.tasks.toString());
+        if (cached && foundUser.tasks.length === cached.length)
+            return res.status(200).json({ message: "Successful", data: cached });
+        await (0, authentication_1.cacheTaskData)(foundUser.tasks.toString(), JSON.stringify(foundTask));
         res.status(200).json({ message: "Successful", data: foundTask });
     }
     catch (err) {
