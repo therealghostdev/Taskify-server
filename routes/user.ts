@@ -1,10 +1,12 @@
 import express, { Router } from "express";
 import { validateAuthentication } from "../utils/middlewares/routes/login&register";
 import { csrfMiddleware } from "../config/csrf-csrf";
-import { addTask, getTask } from "../utils/middlewares/routes/task";
+import { addTask, getTask, updateTask } from "../utils/middlewares/routes/task";
 import {
   validateTasksRequest,
   validateTasksRequestQparam,
+  validateTasksUpdateRequestBody,
+  validateTasksUpdateRequestQparam,
 } from "../utils/middlewares/validators/functions";
 
 export const userRoute: Router = express.Router();
@@ -23,4 +25,13 @@ userRoute.get(
   csrfMiddleware,
   validateTasksRequestQparam,
   getTask
+);
+
+userRoute.put(
+  "/task",
+  validateAuthentication,
+  csrfMiddleware,
+  validateTasksUpdateRequestBody,
+  validateTasksUpdateRequestQparam,
+  updateTask
 );

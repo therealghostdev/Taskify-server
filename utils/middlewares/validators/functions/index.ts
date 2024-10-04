@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { validateUserReg, validateUserLogin, validateTask, validateTaskQuery } from "../schema";
+import {
+  validateUserReg,
+  validateUserLogin,
+  validateTask,
+  validateTaskQuery,
+  validateTaskUpdate, validateTaskUpdateParam
+} from "../schema";
 
 const validateRegisterRequest = (
   req: Request,
@@ -51,4 +57,35 @@ const validateTasksRequestQparam = (
   next();
 };
 
-export { validateRegisterRequest, validateLoginRequest, validateTasksRequest, validateTasksRequestQparam };
+const validateTasksUpdateRequestBody = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { error } = validateTaskUpdate.validate(req.body);
+
+  if (error) return res.status(400).json({ message: error.details[0].message });
+
+  next();
+};
+
+const validateTasksUpdateRequestQparam = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { error } = validateTaskUpdateParam.validate(req.query);
+
+  if (error) return res.status(400).json({ message: error.details[0].message });
+
+  next();
+};
+
+export {
+  validateRegisterRequest,
+  validateLoginRequest,
+  validateTasksRequest,
+  validateTasksRequestQparam,
+  validateTasksUpdateRequestBody,
+  validateTasksUpdateRequestQparam,
+};

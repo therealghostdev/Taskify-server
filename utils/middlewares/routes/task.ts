@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import task from "../../../models/tasks/task";
 import user from "../../../models/user";
-import { userSession } from "../../types";
+import { userSession, TaskType, RecurrenceType } from "../../types";
 import {
   cacheTaskData,
   getCacheTaskData,
@@ -18,9 +18,6 @@ const addTask = async (req: Request, res: Response, next: NextFunction) => {
 
     const currentUser = req.user as userSession | undefined;
     const foundUser = await user.findOne({ userName: currentUser?.username });
-    console.log("req,user", req.user);
-    console.log("Logged in user", currentUser);
-    console.log("Found user:", foundUser);
 
     if (!foundUser) return res.status(404).json({ message: "User not found" });
 
@@ -83,4 +80,127 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { addTask, getTask };
+const updateTask = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      name,
+      category,
+      expected_completion_time,
+      description,
+      recurrence,
+      isRoutine,
+    } = req.body;
+
+    const {
+      name: queryName,
+      category: queryCategory,
+      expected_completion_time: queryExpected_completion_time,
+      description: queryDescription,
+      recurrence: queryRecurrence,
+      isRoutine: queryIsRoutine,
+      completed: queryCompleted,
+      createdAt: queryCreatedAt,
+    } = req.query;
+
+    const currentUser = req.user as userSession;
+
+    const foundUser = await user.findOne({ userName: currentUser.username });
+
+    if (!foundUser) return res.status(404).json({ message: "User not found" });
+
+    type PartialTaskUpdate = Partial<TaskType>;
+
+    type TaskSearchCriteria = {
+      [K in keyof TaskType]?:
+        | TaskType[K]
+        | { $regex: RegExp }
+        | { $gte: Date; $lt: Date };
+    };
+
+    const givenValues: PartialTaskUpdate = {};
+    if (name) givenValues.name = name;
+    if (category) givenValues.category = category;
+    if (expected_completion_time) {
+      const time = new Date(expected_completion_time).getTime();
+      if (!isNaN(time)) {
+        givenValues.expected_completion_time = expected_completion_time;
+      } else {
+        return res.status(400).json({
+          message:
+            "Time value is missing on expectedTime passed to reqest body",
+        });
+      }
+    }
+    if (description) givenValues.description = description;
+    if (recurrence) givenValues.recurrence = recurrence;
+    if (typeof isRoutine === "boolean") givenValues.isRoutine = isRoutine;
+
+    console.log(typeof isRoutine);
+
+    const searchCriteria: TaskSearchCriteria = {};
+    if (queryName && typeof queryName === "string") {
+      searchCriteria.name = { $regex: new RegExp(queryName, "i") };
+    }
+    if (queryCategory && typeof queryCategory === "string") {
+      searchCriteria.category = queryCategory;
+    }
+    if (
+      queryExpected_completion_time &&
+      typeof queryExpected_completion_time === "string"
+    ) {
+      const time = new Date(expected_completion_time).getTime();
+      if (!isNaN(time)) {
+        searchCriteria.expected_completion_time = queryExpected_completion_time;
+      } else {
+        return res.status(400).json({
+          message: "Time value is missing on expectedTime in search query",
+        });
+      }
+    }
+    if (queryDescription && typeof queryDescription === "string") {
+      searchCriteria.description = {
+        $regex: new RegExp(queryDescription, "i"),
+      };
+    }
+    if (queryRecurrence && typeof queryRecurrence === "string") {
+      searchCriteria.recurrence = queryRecurrence as RecurrenceType;
+    }
+    if (typeof queryIsRoutine === "boolean") {
+      searchCriteria.isRoutine = queryIsRoutine;
+    }
+    if (typeof queryCompleted === "boolean") {
+      searchCriteria.completed = queryCompleted;
+    }
+    if (typeof queryCreatedAt === "string") {
+      const date = new Date(queryCreatedAt);
+      if (!isNaN(date.getTime())) {
+        searchCriteria.createdAt = {
+          $gte: new Date(date.setHours(0, 0, 0, 0)),
+          $lt: new Date(date.setHours(23, 59, 59, 999)),
+        };
+      } else {
+        return res.status(400).json({
+          message: "Time value is missing on 'createdAt' in search query",
+        });
+      }
+    }
+
+    const foundTask = await task.findOne(searchCriteria);
+
+    if (!foundTask) return res.status(404).json({ message: "Task not found" });
+
+    if (foundTask.completed)
+      return res.status(409).json({
+        message: "cannot update completed task",
+      });
+
+    await task.updateOne({ _id: foundTask._id }, { $set: givenValues });
+
+    res.status(200).json({ message: "Update action successful" });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export { addTask, getTask, updateTask };

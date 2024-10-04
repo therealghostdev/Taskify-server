@@ -67,3 +67,16 @@ export interface CookieOptions {
   httpOnly: boolean;
   expires: Date;
 }
+
+export type RecurrenceType = "daily" | "weekly" | "monthly";
+export interface TaskType {
+  name: string;
+  description: string;
+  priority: number;
+  category: string;
+  expected_completion_time: string;
+  createdAt: Date;
+  completed: boolean;
+  isRoutine: boolean;
+  recurrence: RecurrenceType;
+}
