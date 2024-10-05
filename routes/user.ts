@@ -12,6 +12,7 @@ import {
   validateTasksRequestQparam,
   validateTasksUpdateRequestBody,
   validateTasksUpdateRequestQparam,
+  taskTimeValidator,
 } from "../utils/middlewares/validators/functions";
 
 export const userRoute: Router = express.Router();
@@ -21,6 +22,7 @@ userRoute.post(
   validateAuthentication,
   csrfMiddleware,
   validateTasksRequest,
+  taskTimeValidator,
   addTask
 );
 
@@ -38,6 +40,7 @@ userRoute.put(
   csrfMiddleware,
   validateTasksUpdateRequestBody,
   validateTasksUpdateRequestQparam,
+  taskTimeValidator,
   updateTask
 );
 
@@ -46,5 +49,6 @@ userRoute.delete(
   validateAuthentication,
   csrfMiddleware,
   validateTasksUpdateRequestQparam,
+  taskTimeValidator,
   deleteTask
 );

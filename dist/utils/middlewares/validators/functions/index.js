@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateTasksUpdateRequestQparam = exports.validateTasksUpdateRequestBody = exports.validateTasksRequestQparam = exports.validateTasksRequest = exports.validateLoginRequest = exports.validateRegisterRequest = void 0;
+exports.taskTimeValidator = exports.validateTasksUpdateRequestQparam = exports.validateTasksUpdateRequestBody = exports.validateTasksRequestQparam = exports.validateTasksRequest = exports.validateLoginRequest = exports.validateRegisterRequest = void 0;
 const schema_1 = require("../schema");
 const validateRegisterRequest = (req, res, next) => {
     const { error } = schema_1.validateUserReg.validate(req.body);
@@ -45,3 +45,25 @@ const validateTasksUpdateRequestQparam = (req, res, next) => {
     next();
 };
 exports.validateTasksUpdateRequestQparam = validateTasksUpdateRequestQparam;
+const taskTimeValidator = (req, res, next) => {
+    const { expected_completion_time } = req.body;
+    const expectedTime = new Date(expected_completion_time); // Already in UTC
+    const currentTime = new Date(); // Current time, local but used as UTC in .getTime()
+    console.log("Expected time (UTC):", expectedTime.toUTCString());
+    console.log("Current time (UTC):", currentTime.toUTCString());
+    if (isNaN(expectedTime.getTime())) {
+        return res.status(400).json({ message: "Invalid time format" });
+    }
+    const timeDifferenceMinutes = Math.round((expectedTime.getTime() - currentTime.getTime()) / 60000);
+    // console.log("Time difference (minutes):", timeDifferenceMinutes);
+    if (timeDifferenceMinutes <= 0) {
+        return res.status(400).json({
+            message: "Time value is unacceptable. Please use a time in the future.",
+            expected: expectedTime.toISOString(),
+            current: currentTime.toISOString(),
+            differenceMinutes: timeDifferenceMinutes,
+        });
+    }
+    next();
+};
+exports.taskTimeValidator = taskTimeValidator;

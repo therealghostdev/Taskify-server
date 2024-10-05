@@ -11,7 +11,6 @@ const general_1 = require("../../functions/general");
 const addTask = async (req, res, next) => {
     try {
         const { name, description, priority, category, expected_completion_time } = req.body;
-        const formatted_expected_completion_time = new Date(expected_completion_time).toISOString();
         const currentUser = req.user;
         const foundUser = await user_1.default.findOne({ userName: currentUser?.username });
         if (!foundUser)
@@ -21,7 +20,7 @@ const addTask = async (req, res, next) => {
             description,
             priority,
             category,
-            expected_completion_time: formatted_expected_completion_time,
+            expected_completion_time,
             createdAt: Date.now(),
             user: foundUser._id,
         });

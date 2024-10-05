@@ -13,10 +13,6 @@ const addTask = async (req: Request, res: Response, next: NextFunction) => {
     const { name, description, priority, category, expected_completion_time } =
       req.body;
 
-    const formatted_expected_completion_time = new Date(
-      expected_completion_time
-    ).toISOString();
-
     const currentUser = req.user as userSession | undefined;
     const foundUser = await user.findOne({ userName: currentUser?.username });
 
@@ -27,7 +23,7 @@ const addTask = async (req: Request, res: Response, next: NextFunction) => {
       description,
       priority,
       category,
-      expected_completion_time: formatted_expected_completion_time,
+      expected_completion_time,
       createdAt: Date.now(),
       user: foundUser._id,
     });
