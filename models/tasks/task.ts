@@ -1,7 +1,26 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, ObjectId } from "mongoose";
+import { RecurrenceType } from "../../utils/types";
 
-// user can't delete a routine task
-const taskSchema = new Schema({
+interface TaskDocument extends Document {
+  _id: ObjectId;
+  name: string;
+  description: string;
+  priority: number;
+  category: string;
+  expected_completion_time: Date;
+  createdAt: Date;
+  completed: boolean;
+  duration: number;
+  completedAt: Date;
+  user: ObjectId;
+  isRoutine: boolean;
+  triggerTime: string;
+  recurrence: RecurrenceType;
+  nextTrigger: Date;
+  addTaskToUser(): Promise<void>;
+}
+
+const taskSchema = new Schema<TaskDocument>({
   name: { type: String, required: true },
   description: { type: String, required: true },
   priority: { type: Number, required: true },
@@ -22,5 +41,16 @@ const taskSchema = new Schema({
   },
   nextTrigger: { type: Date },
 });
+
+taskSchema.methods.addTaskToUser = async function () {
+  try {
+    const task = this as TaskDocument;
+    await model("User").findByIdAndUpdate(task.user, {
+      $push: { tasks: task._id },
+    });
+  } catch (err) {
+    console.log("Something went wrong updating user:", err);
+  }
+};
 
 export default model("Task", taskSchema);

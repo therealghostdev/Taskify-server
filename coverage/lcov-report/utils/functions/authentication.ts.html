@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.17% </span>
+                <span class="strong">56.25% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/29</span>
+                <span class='fraction'>18/32</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">28.57% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/5</span>
+                <span class='fraction'>2/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">55.17% </span>
+                <span class="strong">56.25% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/29</span>
+                <span class='fraction'>18/32</span>
             </div>
         
             
@@ -154,7 +154,15 @@
 <a name='L89'></a><a href='#L89'>89</a>
 <a name='L90'></a><a href='#L90'>90</a>
 <a name='L91'></a><a href='#L91'>91</a>
-<a name='L92'></a><a href='#L92'>92</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -217,7 +225,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -231,6 +238,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -239,6 +248,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -307,7 +323,6 @@ function validatePassword(password: string, hash: string, salt: string) {
 }
 &nbsp;
 const createUserSession = <span class="fstat-no" title="function not covered" >(u</span>ser: any): userSession =&gt; {
-<span class="cstat-no" title="statement not covered" >  console.log("This function ran");</span>
   const data = <span class="cstat-no" title="statement not covered" >{</span>
     _id: user._id,
     firstname: user.firstName,
@@ -320,13 +335,20 @@ const createUserSession = <span class="fstat-no" title="function not covered" >(
       csrf: "",
     },
   };
-<span class="cstat-no" title="statement not covered" >  console.log("You should get this:", data);</span>
-&nbsp;
 <span class="cstat-no" title="statement not covered" >  return data;</span>
 };
 &nbsp;
 async function <span class="fstat-no" title="function not covered" >blacklistToken(</span>key: string, exp: number) {
 <span class="cstat-no" title="statement not covered" >  await redis.set(`blacklist_${key}`, "true", { EX: exp });</span>
+}
+&nbsp;
+async function <span class="fstat-no" title="function not covered" >cacheTaskData(</span>key: string, data: string) {
+<span class="cstat-no" title="statement not covered" >  await redis.set(`cache_task${key}`, data);</span>
+}
+&nbsp;
+async function <span class="fstat-no" title="function not covered" >getCacheTaskData(</span>key: string) {
+  const cachedData = <span class="cstat-no" title="statement not covered" >await redis.get(`cache_task${key}`);</span>
+<span class="cstat-no" title="statement not covered" >  return cachedData ? JSON.parse(cachedData) : null;</span>
 }
 &nbsp;
 export {
@@ -335,6 +357,8 @@ export {
   validatePassword,
   blacklistToken,
   createUserSession,
+  cacheTaskData,
+  getCacheTaskData,
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -343,7 +367,7 @@ export {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-10-02T17:42:03.246Z
+                at 2024-10-04T23:04:22.307Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

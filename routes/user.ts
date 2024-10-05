@@ -1,7 +1,12 @@
 import express, { Router } from "express";
 import { validateAuthentication } from "../utils/middlewares/routes/login&register";
 import { csrfMiddleware } from "../config/csrf-csrf";
-import { addTask, getTask, updateTask } from "../utils/middlewares/routes/task";
+import {
+  addTask,
+  getTask,
+  updateTask,
+  deleteTask,
+} from "../utils/middlewares/routes/task";
 import {
   validateTasksRequest,
   validateTasksRequestQparam,
@@ -34,4 +39,12 @@ userRoute.put(
   validateTasksUpdateRequestBody,
   validateTasksUpdateRequestQparam,
   updateTask
+);
+
+userRoute.delete(
+  "/task",
+  validateAuthentication,
+  csrfMiddleware,
+  validateTasksUpdateRequestQparam,
+  deleteTask
 );

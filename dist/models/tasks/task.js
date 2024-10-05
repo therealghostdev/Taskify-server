@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
-// user can't delete a routine task
 const taskSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
@@ -22,4 +21,15 @@ const taskSchema = new mongoose_1.Schema({
     },
     nextTrigger: { type: Date },
 });
+taskSchema.methods.addTaskToUser = async function () {
+    try {
+        const task = this;
+        await (0, mongoose_1.model)("User").findByIdAndUpdate(task.user, {
+            $push: { tasks: task._id },
+        });
+    }
+    catch (err) {
+        console.log("Something went wrong updating user:", err);
+    }
+};
 exports.default = (0, mongoose_1.model)("Task", taskSchema);

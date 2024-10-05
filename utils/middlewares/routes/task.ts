@@ -6,6 +6,7 @@ import {
   cacheTaskData,
   getCacheTaskData,
 } from "../../functions/authentication";
+import { stringToBoolean } from "../../functions/general";
 
 const addTask = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -32,6 +33,7 @@ const addTask = async (req: Request, res: Response, next: NextFunction) => {
     });
 
     await newTask.save();
+    await newTask.addTaskToUser();
 
     res.status(201).json({ message: "Task creation sucessful" });
   } catch (err) {
@@ -121,21 +123,33 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     if (name) givenValues.name = name;
     if (category) givenValues.category = category;
     if (expected_completion_time) {
-      const time = new Date(expected_completion_time).getTime();
-      if (!isNaN(time)) {
-        givenValues.expected_completion_time = expected_completion_time;
+      const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+      if (isoDateTimeRegex.test(expected_completion_time)) {
+        const time = new Date(expected_completion_time).getTime();
+        if (!isNaN(time)) {
+          givenValues.expected_completion_time = expected_completion_time;
+        } else {
+          return res.status(400).json({
+            message:
+              "Invalid time value in expected_completion_time in the request body",
+          });
+        }
       } else {
         return res.status(400).json({
           message:
-            "Time value is missing on expectedTime passed to reqest body",
+            "Invalid date format for expected_completion_time. Expected ISO 8601 format (YYYY-MM-DDTHH:MM:SS.SSSZ).",
         });
       }
     }
     if (description) givenValues.description = description;
     if (recurrence) givenValues.recurrence = recurrence;
-    if (typeof isRoutine === "boolean") givenValues.isRoutine = isRoutine;
-
-    console.log(typeof isRoutine);
+    if (typeof isRoutine === "boolean" || typeof isRoutine === "string") {
+      if (typeof isRoutine === "string") {
+        givenValues.isRoutine = stringToBoolean(isRoutine);
+      } else {
+        givenValues.isRoutine = isRoutine;
+      }
+    }
 
     const searchCriteria: TaskSearchCriteria = {};
     if (queryName && typeof queryName === "string") {
@@ -148,12 +162,22 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       queryExpected_completion_time &&
       typeof queryExpected_completion_time === "string"
     ) {
-      const time = new Date(expected_completion_time).getTime();
-      if (!isNaN(time)) {
-        searchCriteria.expected_completion_time = queryExpected_completion_time;
+      const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+      if (isoDateTimeRegex.test(queryExpected_completion_time)) {
+        const time = new Date(queryExpected_completion_time).getTime();
+        if (!isNaN(time)) {
+          searchCriteria.expected_completion_time =
+            queryExpected_completion_time;
+        } else {
+          return res.status(400).json({
+            message:
+              "Invalid time value in expected_completion_time in the search query",
+          });
+        }
       } else {
         return res.status(400).json({
-          message: "Time value is missing on expectedTime in search query",
+          message:
+            "Invalid date format for expected_completion_time in request query. Expected ISO 8601 format (YYYY-MM-DDTHH:MM:SS.SSSZ).",
         });
       }
     }
@@ -165,11 +189,25 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     if (queryRecurrence && typeof queryRecurrence === "string") {
       searchCriteria.recurrence = queryRecurrence as RecurrenceType;
     }
-    if (typeof queryIsRoutine === "boolean") {
-      searchCriteria.isRoutine = queryIsRoutine;
+    if (
+      typeof queryIsRoutine === "boolean" ||
+      typeof queryIsRoutine === "string"
+    ) {
+      if (typeof queryIsRoutine === "string") {
+        searchCriteria.completed = stringToBoolean(queryIsRoutine);
+      } else {
+        searchCriteria.isRoutine = queryIsRoutine;
+      }
     }
-    if (typeof queryCompleted === "boolean") {
-      searchCriteria.completed = queryCompleted;
+    if (
+      typeof queryCompleted === "boolean" ||
+      typeof queryCompleted === "string"
+    ) {
+      if (typeof queryCompleted === "string") {
+        searchCriteria.completed = stringToBoolean(queryCompleted);
+      } else {
+        searchCriteria.completed = queryCompleted;
+      }
     }
     if (typeof queryCreatedAt === "string") {
       const date = new Date(queryCreatedAt);
@@ -203,4 +241,124 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { addTask, getTask, updateTask };
+const deleteTask = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      name: queryName,
+      category: queryCategory,
+      expected_completion_time: queryExpected_completion_time,
+      description: queryDescription,
+      recurrence: queryRecurrence,
+      isRoutine: queryIsRoutine,
+      completed: queryCompleted,
+      createdAt: queryCreatedAt,
+    } = req.query;
+
+    const currentUser = req.user as userSession;
+
+    const foundUser = await user.findOne({ userName: currentUser.username });
+
+    if (!foundUser) return res.status(404).json({ message: "User not found" });
+
+    type TaskSearchCriteria = {
+      [K in keyof TaskType]?:
+        | TaskType[K]
+        | { $regex: RegExp }
+        | { $gte: Date; $lt: Date };
+    };
+
+    const searchCriteria: TaskSearchCriteria = {};
+    if (queryName && typeof queryName === "string") {
+      searchCriteria.name = { $regex: new RegExp(queryName, "i") };
+    }
+    if (queryCategory && typeof queryCategory === "string") {
+      searchCriteria.category = queryCategory;
+    }
+    if (
+      queryExpected_completion_time &&
+      typeof queryExpected_completion_time === "string"
+    ) {
+      const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+      if (isoDateTimeRegex.test(queryExpected_completion_time)) {
+        const time = new Date(queryExpected_completion_time).getTime();
+        if (!isNaN(time)) {
+          searchCriteria.expected_completion_time =
+            queryExpected_completion_time;
+        } else {
+          return res.status(400).json({
+            message:
+              "Invalid time value in expected_completion_time in the search query",
+          });
+        }
+      } else {
+        return res.status(400).json({
+          message:
+            "Invalid date format for expected_completion_time in request query. Expected ISO 8601 format (YYYY-MM-DDTHH:MM:SS.SSSZ).",
+        });
+      }
+    }
+    if (queryDescription && typeof queryDescription === "string") {
+      searchCriteria.description = {
+        $regex: new RegExp(queryDescription, "i"),
+      };
+    }
+    if (queryRecurrence && typeof queryRecurrence === "string") {
+      searchCriteria.recurrence = queryRecurrence as RecurrenceType;
+    }
+    if (
+      typeof queryIsRoutine === "boolean" ||
+      typeof queryIsRoutine === "string"
+    ) {
+      if (typeof queryIsRoutine === "string") {
+        searchCriteria.completed = stringToBoolean(queryIsRoutine);
+      } else {
+        searchCriteria.isRoutine = queryIsRoutine;
+      }
+    }
+    if (
+      typeof queryCompleted === "boolean" ||
+      typeof queryCompleted === "string"
+    ) {
+      if (typeof queryCompleted === "string") {
+        searchCriteria.completed = stringToBoolean(queryCompleted);
+      } else {
+        searchCriteria.completed = queryCompleted;
+      }
+    }
+    if (typeof queryCreatedAt === "string") {
+      const date = new Date(queryCreatedAt);
+      if (!isNaN(date.getTime())) {
+        searchCriteria.createdAt = {
+          $gte: new Date(date.setHours(0, 0, 0, 0)),
+          $lt: new Date(date.setHours(23, 59, 59, 999)),
+        };
+      } else {
+        return res.status(400).json({
+          message: "Time value is missing on 'createdAt' in search query",
+        });
+      }
+    }
+
+    const foundTask = await task.findOne(searchCriteria);
+
+    if (!foundTask) return res.status(404).json({ message: "Task not found" });
+
+    if (foundTask.completed)
+      return res.status(409).json({
+        message: "cannot delete a completed task",
+      });
+
+    await task.deleteOne({ _id: foundTask._id });
+
+    await user.findByIdAndUpdate(foundUser._id, {
+      $pull: { tasks: foundTask._id },
+    });
+
+    res.status(200).json({ message: "Delete action successful" });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export { addTask, getTask, updateTask, deleteTask };
