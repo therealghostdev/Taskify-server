@@ -87,6 +87,8 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       description,
       recurrence,
       isRoutine,
+      duration,
+      completed,
     } = req.body;
 
     const {
@@ -139,11 +141,33 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     }
     if (description) givenValues.description = description;
     if (recurrence) givenValues.recurrence = recurrence;
+    if (duration) givenValues.duration = duration;
     if (typeof isRoutine === "boolean" || typeof isRoutine === "string") {
       if (typeof isRoutine === "string") {
         givenValues.isRoutine = stringToBoolean(isRoutine);
       } else {
         givenValues.isRoutine = isRoutine;
+      }
+    }
+    if (typeof completed === "boolean" || typeof completed === "string") {
+      if (typeof completed === "string") {
+        if ((stringToBoolean(completed) && !duration) || duration <= 0) {
+          return res
+            .status(400)
+            .json({ message: "Task duration field unset, value 0 or invalid" });
+        } else {
+          givenValues.completed = stringToBoolean(completed);
+        }
+      } else if (typeof completed === "boolean") {
+        if ((completed && !duration) || duration <= 0) {
+          return res
+            .status(400)
+            .json({
+              message: "Task duration field unset, value 0 or invalaid"
+            });
+        } else {
+          givenValues.completed = completed;
+        }
       }
     }
 

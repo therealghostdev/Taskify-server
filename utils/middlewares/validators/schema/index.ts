@@ -77,8 +77,15 @@ const validateTaskUpdate = joi.object({
     "string.min":
       "Category must be a minimum of 4 characters => (request body Error)",
   }),
+  duration: joi.number().min(1).messages({
+    "number.base": "Duration must be a number => (request body error)",
+    "number.min": "Duration must be value of 1 or higher",
+  }),
   isRoutine: joi.boolean().messages({
     "boolean.base": "isRoutine must be of type boolean => (request body Error)",
+  }),
+  completed: joi.boolean().messages({
+    "boolean.base": "completed must be of type boolean => (request body Error)",
   }),
   expected_completion_time: joi.date().iso().min("now").messages({
     "date.base":

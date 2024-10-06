@@ -79,4 +79,5 @@ export interface TaskType {
   completed: boolean;
   isRoutine: boolean;
   recurrence: RecurrenceType;
+  duration?: number
 }

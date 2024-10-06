@@ -24,6 +24,7 @@ const userSchema = new Schema({
   refreshToken: { value: String, version: Number },
   createdAt: { type: Date, required: true },
   tasks: [{ type: Schema.Types.ObjectId, ref: "tasks" }],
+  taskCount: [{ completed: { type: Number }, incomplete: { type: Number } }],
 });
 
 export default mongoose.model("User", userSchema);

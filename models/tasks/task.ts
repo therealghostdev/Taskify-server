@@ -25,7 +25,7 @@ const taskSchema = new Schema<TaskDocument>({
   description: { type: String, required: true },
   priority: { type: Number, required: true },
   category: { type: String, required: true },
-  duration: Number,
+  duration: { type: Number, default: 0 }, // in minutes
   expected_completion_time: { type: Date, required: true },
   createdAt: { type: Date, required: true },
   completed: { type: Boolean, required: true, default: false },

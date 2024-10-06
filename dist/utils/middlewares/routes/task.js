@@ -70,7 +70,7 @@ const getTask = async (req, res, next) => {
 exports.getTask = getTask;
 const updateTask = async (req, res, next) => {
     try {
-        const { name, category, expected_completion_time, description, recurrence, isRoutine, } = req.body;
+        const { name, category, expected_completion_time, description, recurrence, isRoutine, duration, completed, } = req.body;
         const { name: queryName, category: queryCategory, expected_completion_time: queryExpected_completion_time, description: queryDescription, recurrence: queryRecurrence, isRoutine: queryIsRoutine, completed: queryCompleted, createdAt: queryCreatedAt, } = req.query;
         const currentUser = req.user;
         const foundUser = await user_1.default.findOne({ userName: currentUser.username });
@@ -104,12 +104,38 @@ const updateTask = async (req, res, next) => {
             givenValues.description = description;
         if (recurrence)
             givenValues.recurrence = recurrence;
+        if (duration)
+            givenValues.duration = duration;
         if (typeof isRoutine === "boolean" || typeof isRoutine === "string") {
             if (typeof isRoutine === "string") {
                 givenValues.isRoutine = (0, general_1.stringToBoolean)(isRoutine);
             }
             else {
                 givenValues.isRoutine = isRoutine;
+            }
+        }
+        if (typeof completed === "boolean" || typeof completed === "string") {
+            if (typeof completed === "string") {
+                if (((0, general_1.stringToBoolean)(completed) && !duration) || duration <= 0) {
+                    return res
+                        .status(400)
+                        .json({ message: "Task duration field unset, value 0 or invalid" });
+                }
+                else {
+                    givenValues.completed = (0, general_1.stringToBoolean)(completed);
+                }
+            }
+            else if (typeof completed === "boolean") {
+                if ((completed && !duration) || duration <= 0) {
+                    return res
+                        .status(400)
+                        .json({
+                        message: "Task duration field unset, value 0 or invalaid"
+                    });
+                }
+                else {
+                    givenValues.completed = completed;
+                }
             }
         }
         const searchCriteria = {};
