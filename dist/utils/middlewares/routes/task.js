@@ -26,6 +26,7 @@ const addTask = async (req, res, next) => {
         });
         await newTask.save();
         await newTask.addTaskToUser();
+        await foundUser.updateTaskCounts();
         res.status(201).json({ message: "Task creation sucessful" });
     }
     catch (err) {
@@ -104,7 +105,9 @@ const updateTask = async (req, res, next) => {
             givenValues.description = description;
         if (recurrence)
             givenValues.recurrence = recurrence;
-        if (duration)
+        if (duration &&
+            (completed === "true" ||
+                (typeof completed === "boolean" && completed === true)))
             givenValues.duration = duration;
         if (typeof isRoutine === "boolean" || typeof isRoutine === "string") {
             if (typeof isRoutine === "string") {
@@ -127,10 +130,8 @@ const updateTask = async (req, res, next) => {
             }
             else if (typeof completed === "boolean") {
                 if ((completed && !duration) || duration <= 0) {
-                    return res
-                        .status(400)
-                        .json({
-                        message: "Task duration field unset, value 0 or invalaid"
+                    return res.status(400).json({
+                        message: "Task duration field unset, value 0 or invalaid",
                     });
                 }
                 else {
@@ -214,6 +215,7 @@ const updateTask = async (req, res, next) => {
                 message: "cannot update completed task",
             });
         await task_1.default.updateOne({ _id: foundTask._id }, { $set: givenValues });
+        await foundUser.updateTaskCounts();
         res.status(200).json({ message: "Update action successful" });
     }
     catch (err) {
@@ -308,6 +310,7 @@ const deleteTask = async (req, res, next) => {
         await user_1.default.findByIdAndUpdate(foundUser._id, {
             $pull: { tasks: foundTask._id },
         });
+        await foundUser.updateTaskCounts();
         res.status(200).json({ message: "Delete action successful" });
     }
     catch (err) {

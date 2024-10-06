@@ -1,24 +1,5 @@
-import { Schema, model, ObjectId } from "mongoose";
-import { RecurrenceType } from "../../utils/types";
-
-interface TaskDocument extends Document {
-  _id: ObjectId;
-  name: string;
-  description: string;
-  priority: number;
-  category: string;
-  expected_completion_time: Date;
-  createdAt: Date;
-  completed: boolean;
-  duration: number;
-  completedAt: Date;
-  user: ObjectId;
-  isRoutine: boolean;
-  triggerTime: string;
-  recurrence: RecurrenceType;
-  nextTrigger: Date;
-  addTaskToUser(): Promise<void>;
-}
+import { Schema, model } from "mongoose";
+import { TaskDocument } from "../../utils/types";
 
 const taskSchema = new Schema<TaskDocument>({
   name: { type: String, required: true },

@@ -49,6 +49,5 @@ userRoute.delete(
   validateAuthentication,
   csrfMiddleware,
   validateTasksUpdateRequestQparam,
-  taskTimeValidator,
   deleteTask
 );

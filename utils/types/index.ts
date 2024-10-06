@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { Algorithm } from "jsonwebtoken";
-import { Types, Document } from "mongoose";
+import { Types, Document, ObjectId } from "mongoose";
 
 export interface userType extends Document {
   _id: Types.ObjectId;
@@ -79,5 +79,23 @@ export interface TaskType {
   completed: boolean;
   isRoutine: boolean;
   recurrence: RecurrenceType;
-  duration?: number
+  duration?: number;
+}
+export interface TaskDocument extends Document {
+  _id: ObjectId;
+  name: string;
+  description: string;
+  priority: number;
+  category: string;
+  expected_completion_time: Date;
+  createdAt: Date;
+  completed: boolean;
+  duration: number;
+  completedAt: Date;
+  user: ObjectId;
+  isRoutine: boolean;
+  triggerTime: string;
+  recurrence: RecurrenceType;
+  nextTrigger: Date;
+  addTaskToUser(): Promise<void>;
 }

@@ -46,11 +46,12 @@ const validateTasksUpdateRequestQparam = (req, res, next) => {
 };
 exports.validateTasksUpdateRequestQparam = validateTasksUpdateRequestQparam;
 const taskTimeValidator = (req, res, next) => {
+    console.log("This function ran");
     const { expected_completion_time } = req.body;
     const expectedTime = new Date(expected_completion_time); // Already in UTC
     const currentTime = new Date(); // Current time, local but used as UTC in .getTime()
-    console.log("Expected time (UTC):", expectedTime.toUTCString());
-    console.log("Current time (UTC):", currentTime.toUTCString());
+    // console.log("Expected time (UTC):", expectedTime.toUTCString());
+    // console.log("Current time (UTC):", currentTime.toUTCString());
     if (isNaN(expectedTime.getTime())) {
         return res.status(400).json({ message: "Invalid time format" });
     }
