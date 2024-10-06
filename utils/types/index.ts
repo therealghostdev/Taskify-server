@@ -70,6 +70,8 @@ export interface CookieOptions {
 
 export type RecurrenceType = "daily" | "weekly" | "monthly";
 export interface TaskType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any;
   name: string;
   description: string;
   priority: number;

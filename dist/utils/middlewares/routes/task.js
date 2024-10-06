@@ -140,6 +140,7 @@ const updateTask = async (req, res, next) => {
             }
         }
         const searchCriteria = {};
+        searchCriteria.user = foundUser._id;
         if (queryName && typeof queryName === "string") {
             searchCriteria.name = { $regex: new RegExp(queryName, "i") };
         }
@@ -232,6 +233,7 @@ const deleteTask = async (req, res, next) => {
         if (!foundUser)
             return res.status(404).json({ message: "User not found" });
         const searchCriteria = {};
+        searchCriteria.user = foundUser._id;
         if (queryName && typeof queryName === "string") {
             searchCriteria.name = { $regex: new RegExp(queryName, "i") };
         }
