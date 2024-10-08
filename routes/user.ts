@@ -12,7 +12,7 @@ import {
   validateTasksRequestQparam,
   validateTasksUpdateRequestBody,
   validateTasksUpdateRequestQparam,
-  taskTimeValidator,
+  taskTimeValidator, sortTasks
 } from "../utils/middlewares/validators/functions";
 
 export const userRoute: Router = express.Router();
@@ -31,6 +31,7 @@ userRoute.get(
   validateAuthentication,
   csrfMiddleware,
   validateTasksRequestQparam,
+  sortTasks,
   getTask
 );
 

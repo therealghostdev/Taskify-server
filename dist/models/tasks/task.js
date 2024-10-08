@@ -12,6 +12,7 @@ const taskSchema = new mongoose_1.Schema({
     completed: { type: Boolean, required: true, default: false },
     completedAt: Date,
     user: { type: mongoose_1.Schema.Types.ObjectId, ref: "users", required: true },
+    isCounted: { type: Boolean, required: true, default: false },
     isRoutine: { type: Boolean, default: false },
     triggerTime: { type: String },
     recurrence: {

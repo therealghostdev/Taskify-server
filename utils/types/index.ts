@@ -95,6 +95,7 @@ export interface TaskDocument extends Document {
   duration: number;
   completedAt: Date;
   user: ObjectId;
+  isCounted: boolean;
   isRoutine: boolean;
   triggerTime: string;
   recurrence: RecurrenceType;
