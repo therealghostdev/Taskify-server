@@ -87,6 +87,11 @@ const validateTaskUpdate = joi.object({
   completed: joi.boolean().messages({
     "boolean.base": "completed must be of type boolean => (request body Error)",
   }),
+  completedAt: joi.date().iso().messages({
+    "date.base": "'completedAt' must be a valid date => (request body Error)",
+    "date.iso":
+      "'completedAt' mut be in ISO date format => (request body Error)",
+  }),
   expected_completion_time: joi.date().iso().min("now").messages({
     "date.base":
       "'expected_date_of_completion' must be a valid date => (request body Error)",

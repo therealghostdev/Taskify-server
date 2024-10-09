@@ -96,29 +96,24 @@ const taskTimeValidator = (req: Request, res: Response, next: NextFunction) => {
   console.log("This function ran");
 
   const { expected_completion_time } = req.body;
-  const expectedTime = new Date(expected_completion_time); // Already in UTC
-  const currentTime = new Date(); // Current time, local but used as UTC in .getTime()
+  if (expected_completion_time) {
+    const expectedTime = new Date(expected_completion_time); // Already in UTC
+    const currentTime = new Date(); // Current time, local but used as UTC in .getTime()
 
-  // console.log("Expected time (UTC):", expectedTime.toUTCString());
-  // console.log("Current time (UTC):", currentTime.toUTCString());
+    if (isNaN(expectedTime.getTime())) {
+      return res.status(400).json({ message: "Invalid time format" });
+    }
 
-  if (isNaN(expectedTime.getTime())) {
-    return res.status(400).json({ message: "Invalid time format" });
-  }
+    const timeDifferenceMinutes = Math.round(
+      (expectedTime.getTime() - currentTime.getTime()) / 60000
+    );
 
-  const timeDifferenceMinutes = Math.round(
-    (expectedTime.getTime() - currentTime.getTime()) / 60000
-  );
-
-  // console.log("Time difference (minutes):", timeDifferenceMinutes);
-
-  if (timeDifferenceMinutes <= 0) {
-    return res.status(400).json({
-      message: "Time value is unacceptable. Please use a time in the future.",
-      expected: expectedTime.toISOString(),
-      current: currentTime.toISOString(),
-      differenceMinutes: timeDifferenceMinutes,
-    });
+    if (timeDifferenceMinutes <= 0) {
+      return res.status(400).json({
+        message: "Time value is unacceptable. Please use a time in the future.",
+      });
+    }
+    next();
   }
 
   next();
@@ -140,8 +135,28 @@ const sortTasks = async (req: Request, res: Response, next: NextFunction) => {
 
     const tasks = foundUser.tasks as unknown as TaskDocument[];
 
-    // Ensure we have today's task entry in DailyTasks
-    let DailyTasks = await dailyTasks.findOne({ date: today });
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const todayEnd = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    console.log("Query date range:", { start: todayStart, end: todayEnd });
+
+    // Query for today's DailyTasks
+    let DailyTasks = await dailyTasks.findOne({
+      date: {
+        $gte: todayStart,
+        $lt: todayEnd,
+      },
+    });
+    console.log(DailyTasks);
+
     if (!DailyTasks) {
       DailyTasks = await dailyTasks.create({
         date: today,
@@ -185,8 +200,8 @@ const sortTasks = async (req: Request, res: Response, next: NextFunction) => {
     dailyMinutes += totalDuration;
 
     // Update DailyTasks with current counts
-    DailyTasks.amount = completedTaskCount;
-    DailyTasks.minutes = dailyMinutes;
+    DailyTasks.amount += completedTaskCount;
+    DailyTasks.minutes += dailyMinutes;
     await DailyTasks.save();
 
     // Weekly, Monthly, and Yearly Task Updates

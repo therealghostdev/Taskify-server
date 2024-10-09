@@ -71,19 +71,19 @@ const getTask = async (req, res, next) => {
 exports.getTask = getTask;
 const updateTask = async (req, res, next) => {
     try {
-        const { name, category, expected_completion_time, description, recurrence, isRoutine, duration, completed, } = req.body;
+        const { name, category, expected_completion_time, description, recurrence, isRoutine, duration, completed, completedAt, } = req.body;
         const { name: queryName, category: queryCategory, expected_completion_time: queryExpected_completion_time, description: queryDescription, recurrence: queryRecurrence, isRoutine: queryIsRoutine, completed: queryCompleted, createdAt: queryCreatedAt, } = req.query;
         const currentUser = req.user;
         const foundUser = await user_1.default.findOne({ userName: currentUser.username });
         if (!foundUser)
             return res.status(404).json({ message: "User not found" });
+        const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
         const givenValues = {};
         if (name)
             givenValues.name = name;
         if (category)
             givenValues.category = category;
         if (expected_completion_time) {
-            const isoDateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
             if (isoDateTimeRegex.test(expected_completion_time)) {
                 const time = new Date(expected_completion_time).getTime();
                 if (!isNaN(time)) {
@@ -118,25 +118,50 @@ const updateTask = async (req, res, next) => {
             }
         }
         if (typeof completed === "boolean" || typeof completed === "string") {
+            const completedTime = new Date(completedAt).getTime();
             if (typeof completed === "string") {
-                if (((0, general_1.stringToBoolean)(completed) && !duration) || duration <= 0) {
-                    return res
-                        .status(400)
-                        .json({ message: "Task duration field unset, value 0 or invalid" });
+                if (((0, general_1.stringToBoolean)(completed) && !duration) ||
+                    duration <= 0 ||
+                    !completedAt ||
+                    isNaN(completedTime)) {
+                    return res.status(400).json({
+                        message: "Task duration field unset, value 0, invalaid or completedAt value is missing or invalid",
+                    });
                 }
                 else {
                     givenValues.completed = (0, general_1.stringToBoolean)(completed);
                 }
             }
             else if (typeof completed === "boolean") {
-                if ((completed && !duration) || duration <= 0) {
+                if ((completed && !duration) ||
+                    duration <= 0 ||
+                    !completedAt ||
+                    isNaN(completedTime)) {
                     return res.status(400).json({
-                        message: "Task duration field unset, value 0 or invalaid",
+                        message: "Task duration field unset, value 0, invalaid or completedAt value is missing or invalid",
                     });
                 }
                 else {
                     givenValues.completed = completed;
                 }
+            }
+        }
+        if (completedAt) {
+            if (isoDateTimeRegex.test(completedAt)) {
+                const time = new Date(completedAt).getTime();
+                if (!isNaN(time)) {
+                    givenValues.completedAt = completedAt;
+                }
+                else {
+                    return res.status(400).json({
+                        message: "CompletedAt field in request body missing a time value or invalid",
+                    });
+                }
+            }
+            else {
+                return res.status(400).json({
+                    message: "CompletedAt field in request body is invalid (Time value likely missing)",
+                });
             }
         }
         const searchCriteria = {};
@@ -212,9 +237,23 @@ const updateTask = async (req, res, next) => {
         if (!foundTask)
             return res.status(404).json({ message: "Task not found" });
         if (foundTask.completed)
-            return res.status(409).json({
+            return res.status(403).json({
                 message: "cannot update completed task",
             });
+        const now = new Date();
+        const completedAtDate = new Date(completedAt);
+        const createdAtDate = new Date(foundTask.createdAt);
+        const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+        if (completedAt && completedAtDate < createdAtDate) {
+            return res.status(403).json({
+                message: "completion date cannot preceed creation date use a day in the future for 'completedAt field'",
+            });
+        }
+        if (completedAtDate > fiveMinutesFromNow) {
+            return res.status(403).json({
+                message: "Completion date cannot be too far in the future",
+            });
+        }
         await task_1.default.updateOne({ _id: foundTask._id }, { $set: givenValues });
         await foundUser.updateTaskCounts();
         res.status(200).json({ message: "Update action successful" });

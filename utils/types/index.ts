@@ -79,6 +79,7 @@ export interface TaskType {
   expected_completion_time: string;
   createdAt: Date;
   completed: boolean;
+  completedAt: Date;
   isRoutine: boolean;
   recurrence: RecurrenceType;
   duration?: number;
