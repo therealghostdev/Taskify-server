@@ -67,7 +67,6 @@ const taskTimeValidator = (req, res, next) => {
                 message: "Time value is unacceptable. Please use a time in the future.",
             });
         }
-        next();
     }
     next();
 };

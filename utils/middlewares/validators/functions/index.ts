@@ -93,8 +93,6 @@ const validateTasksUpdateRequestQparam = (
 };
 
 const taskTimeValidator = (req: Request, res: Response, next: NextFunction) => {
-  console.log("This function ran");
-
   const { expected_completion_time } = req.body;
   if (expected_completion_time) {
     const expectedTime = new Date(expected_completion_time); // Already in UTC
@@ -113,7 +111,6 @@ const taskTimeValidator = (req: Request, res: Response, next: NextFunction) => {
         message: "Time value is unacceptable. Please use a time in the future.",
       });
     }
-    next();
   }
 
   next();
