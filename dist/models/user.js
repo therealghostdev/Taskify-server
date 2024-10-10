@@ -33,6 +33,7 @@ const userSchema = new mongoose_1.Schema({
             total: { type: Number },
         },
     ],
+    fcmToken: String,
 });
 userSchema.methods.updateTaskCounts = async function () {
     try {

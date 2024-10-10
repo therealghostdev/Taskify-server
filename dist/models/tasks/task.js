@@ -11,7 +11,7 @@ const taskSchema = new mongoose_1.Schema({
     createdAt: { type: Date, required: true },
     completed: { type: Boolean, required: true, default: false },
     completedAt: Date,
-    user: { type: mongoose_1.Schema.Types.ObjectId, ref: "users", required: true },
+    user: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },
     isCounted: { type: Boolean, required: true, default: false },
     isRoutine: { type: Boolean, default: false },
     triggerTime: { type: String },

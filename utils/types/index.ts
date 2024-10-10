@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from "express";
 import { Algorithm } from "jsonwebtoken";
-import { Types, Document, ObjectId } from "mongoose";
+import { Types, Document, ObjectId, Schema } from "mongoose";
 
 export interface userType extends Document {
   _id: Types.ObjectId;
@@ -102,4 +103,24 @@ export interface TaskDocument extends Document {
   recurrence: RecurrenceType;
   nextTrigger: Date;
   addTaskToUser(): Promise<void>;
+}
+
+export interface UserDocument extends Document {
+  firstName: string;
+  lastName: string;
+  userName: string;
+  google_profile: Array<any>;
+  appleProfile: Array<any>;
+  hash: string;
+  salt: string;
+  refreshToken: { value: string; version: number };
+  createdAt: Date;
+  tasks: Array<Schema.Types.ObjectId>;
+  taskCount: {
+    completed: number;
+    incomplete: number;
+    total: number;
+  };
+  fcmToken: string;
+  updateTaskCounts: () => Promise<void>;
 }

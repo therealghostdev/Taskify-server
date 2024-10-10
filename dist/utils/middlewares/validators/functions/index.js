@@ -53,7 +53,6 @@ const validateTasksUpdateRequestQparam = (req, res, next) => {
 };
 exports.validateTasksUpdateRequestQparam = validateTasksUpdateRequestQparam;
 const taskTimeValidator = (req, res, next) => {
-    console.log("This function ran");
     const { expected_completion_time } = req.body;
     if (expected_completion_time) {
         const expectedTime = new Date(expected_completion_time); // Already in UTC

@@ -3,6 +3,8 @@ import weeklyTasks from "../../models/tasks/weeklyTasks";
 import monthlyTasks from "../../models/tasks/monthlyTasks";
 import yearlyTasks from "../../models/tasks/yearlyTasks";
 import { getWeekOfMonth } from "./general";
+import { getMessaging } from "firebase-admin/messaging";
+import { TaskType } from "../types";
 
 // Update weekly tasks
 export const updateWeeklyTasks = async (
@@ -104,4 +106,20 @@ export const updateYearlyTasks = async (
     YearlyTask.date = latestTaskDate;
   }
   await YearlyTask.save();
+};
+
+export const createNotification = async (token: string, tasks: TaskType) => {
+  const message = {
+    token,
+    notification: {
+      title: `Reminder for ${tasks.name} in your schedule`,
+      body: `it's time to ${tasks.name}`,
+    },
+  };
+
+  try {
+    await getMessaging().send(message);
+  } catch (err) {
+    console.error("Error sending notification:", err);
+  }
 };

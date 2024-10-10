@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateYearlyTasks = exports.updateMonthlyTasks = exports.updateWeeklyTasks = void 0;
+exports.createNotification = exports.updateYearlyTasks = exports.updateMonthlyTasks = exports.updateWeeklyTasks = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const weeklyTasks_1 = __importDefault(require("../../models/tasks/weeklyTasks"));
 const monthlyTasks_1 = __importDefault(require("../../models/tasks/monthlyTasks"));
 const yearlyTasks_1 = __importDefault(require("../../models/tasks/yearlyTasks"));
 const general_1 = require("./general");
+const messaging_1 = require("firebase-admin/messaging");
 // Update weekly tasks
 const updateWeeklyTasks = async (dayOfWeek, dailyMinutes, dailyTaskCount, latestTaskDate, 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -87,3 +88,19 @@ const updateYearlyTasks = async (month, latestTaskDate, user, year) => {
     await YearlyTask.save();
 };
 exports.updateYearlyTasks = updateYearlyTasks;
+const createNotification = async (token, tasks) => {
+    const message = {
+        token,
+        notification: {
+            title: `Reminder for ${tasks.name} in your schedule`,
+            body: `it's time to ${tasks.name}`,
+        },
+    };
+    try {
+        await (0, messaging_1.getMessaging)().send(message);
+    }
+    catch (err) {
+        console.error("Error sending notification:", err);
+    }
+};
+exports.createNotification = createNotification;

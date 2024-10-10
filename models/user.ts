@@ -1,25 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Schema, model } from "mongoose";
-import { TaskDocument } from "../utils/types";
-
-interface UserDocument extends Document {
-  firstName: string;
-  lastName: string;
-  userName: string;
-  google_profile: Array<any>;
-  appleProfile: Array<any>;
-  hash: string;
-  salt: string;
-  refreshToken: { value: string; version: number };
-  createdAt: Date;
-  tasks: Array<Schema.Types.ObjectId>;
-  taskCount: {
-    completed: number;
-    incomplete: number;
-    total: number;
-  };
-  updateTaskCounts: () => Promise<void>;
-}
+import { TaskDocument, UserDocument } from "../utils/types";
 
 const userSchema = new Schema<UserDocument>({
   firstName: { type: String, required: true },
@@ -52,6 +33,7 @@ const userSchema = new Schema<UserDocument>({
       total: { type: Number },
     },
   ],
+  fcmToken: String,
 });
 
 userSchema.methods.updateTaskCounts = async function () {
