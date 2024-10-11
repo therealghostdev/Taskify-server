@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const node_cron_1 = __importDefault(require("node-cron"));
 const task_1 = __importDefault(require("../models/tasks/task"));
 const tasks_1 = require("../utils/functions/tasks");
-node_cron_1.default.schedule("*****", async () => {
+const date_fns_tz_1 = require("date-fns-tz");
+const date_fns_1 = require("date-fns");
+node_cron_1.default.schedule("* * * * *", async () => {
     try {
         const now = new Date();
         const tasks = await task_1.default
@@ -17,21 +19,29 @@ node_cron_1.default.schedule("*****", async () => {
             .populate("user");
         for (const i of tasks) {
             const user = i.user;
-            if (user && user.fcmToken) {
-                const taskForNotification = {
-                    ...i.toObject(),
-                    expected_completion_time: i.expected_completion_time.toISOString(),
-                };
-                await (0, tasks_1.createNotification)(user.fcmToken, taskForNotification);
-                const triggerValue = new Date(i.nextTrigger);
-                if (i.recurrence === "daily")
-                    triggerValue.setDate(triggerValue.getDate() + 1);
-                if (i.recurrence === "weekly")
-                    triggerValue.setDate(triggerValue.getDate() + 7);
-                if (i.recurrence === "daily")
-                    triggerValue.setDate(triggerValue.getMonth() + 1);
-                i.nextTrigger = triggerValue;
-                await i.save();
+            if (user && user.fcmToken && user.timezone) {
+                const userTimeZone = user.timezone;
+                const userNow = (0, date_fns_tz_1.toZonedTime)(now, userTimeZone);
+                const taskTriggerTime = (0, date_fns_tz_1.toZonedTime)(i.nextTrigger, userTimeZone);
+                if ((0, date_fns_1.isSameMinute)(userNow, taskTriggerTime)) {
+                    const taskForNotification = {
+                        ...i.toObject(),
+                        expected_completion_time: i.expected_completion_time.toISOString(),
+                    };
+                    await (0, tasks_1.createNotification)(user.fcmToken, taskForNotification);
+                    const nextTrigger = new Date(taskTriggerTime);
+                    if (i.recurrence === "daily") {
+                        nextTrigger.setDate(nextTrigger.getDate() + 1);
+                    }
+                    else if (i.recurrence === "weekly") {
+                        nextTrigger.setDate(nextTrigger.getDate() + 7);
+                    }
+                    else if (i.recurrence === "monthly") {
+                        nextTrigger.setMonth(nextTrigger.getMonth() + 1);
+                    }
+                    i.nextTrigger = nextTrigger;
+                    await i.save();
+                }
             }
         }
     }

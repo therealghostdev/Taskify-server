@@ -34,6 +34,7 @@ const userSchema = new mongoose_1.Schema({
         },
     ],
     fcmToken: String,
+    timezone: String,
 });
 userSchema.methods.updateTaskCounts = async function () {
     try {

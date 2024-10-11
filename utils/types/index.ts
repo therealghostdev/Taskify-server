@@ -30,7 +30,7 @@ export interface userType extends Document {
 }
 
 export interface userSession {
-  _id?: Types.ObjectId;
+  _id?: any;
   firstname: string;
   lastname: string;
   username: string;
@@ -122,5 +122,6 @@ export interface UserDocument extends Document {
     total: number;
   };
   fcmToken: string;
+  timezone: string;
   updateTaskCounts: () => Promise<void>;
 }

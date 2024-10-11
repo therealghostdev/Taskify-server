@@ -2,8 +2,10 @@ import cron from "node-cron";
 import task from "../models/tasks/task";
 import { TaskType, UserDocument } from "../utils/types";
 import { createNotification } from "../utils/functions/tasks";
+import { toZonedTime } from "date-fns-tz";
+import { isSameMinute } from "date-fns";
 
-cron.schedule("*****", async () => {
+cron.schedule("* * * * *", async () => {
   try {
     const now = new Date();
 
@@ -17,27 +19,32 @@ cron.schedule("*****", async () => {
     for (const i of tasks) {
       const user = i.user as unknown as UserDocument;
 
-      if (user && user.fcmToken) {
-        const taskForNotification: TaskType = {
-          ...i.toObject(),
-          expected_completion_time: i.expected_completion_time.toISOString(),
-        };
+      if (user && user.fcmToken && user.timezone) {
+        const userTimeZone = user.timezone;
+        const userNow = toZonedTime(now, userTimeZone);
+        const taskTriggerTime = toZonedTime(i.nextTrigger, userTimeZone);
 
-        await createNotification(user.fcmToken, taskForNotification);
+        if (isSameMinute(userNow, taskTriggerTime)) {
+          const taskForNotification: TaskType = {
+            ...i.toObject(),
+            expected_completion_time: i.expected_completion_time.toISOString(),
+          };
 
-        const triggerValue = new Date(i.nextTrigger);
+          await createNotification(user.fcmToken, taskForNotification);
 
-        if (i.recurrence === "daily")
-          triggerValue.setDate(triggerValue.getDate() + 1);
+          const nextTrigger = new Date(taskTriggerTime);
 
-        if (i.recurrence === "weekly")
-          triggerValue.setDate(triggerValue.getDate() + 7);
+          if (i.recurrence === "daily") {
+            nextTrigger.setDate(nextTrigger.getDate() + 1);
+          } else if (i.recurrence === "weekly") {
+            nextTrigger.setDate(nextTrigger.getDate() + 7);
+          } else if (i.recurrence === "monthly") {
+            nextTrigger.setMonth(nextTrigger.getMonth() + 1);
+          }
 
-        if (i.recurrence === "daily")
-          triggerValue.setDate(triggerValue.getMonth() + 1);
-
-        i.nextTrigger = triggerValue;
-        await i.save();
+          i.nextTrigger = nextTrigger;
+          await i.save();
+        }
       }
     }
   } catch (err) {

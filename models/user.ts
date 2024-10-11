@@ -34,6 +34,7 @@ const userSchema = new Schema<UserDocument>({
     },
   ],
   fcmToken: String,
+  timezone: String,
 });
 
 userSchema.methods.updateTaskCounts = async function () {
