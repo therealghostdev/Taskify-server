@@ -81,6 +81,9 @@ const validateTaskUpdate = joi.object({
     "number.base": "Duration must be a number => (request body error)",
     "number.min": "Duration must be value of 1 or higher",
   }),
+  onFocus: joi.boolean().messages({
+    "boolean.base": "onFocus must be of type boolean => (request body Error)",
+  }),
   isRoutine: joi.boolean().messages({
     "boolean.base": "isRoutine must be of type boolean => (request body Error)",
   }),

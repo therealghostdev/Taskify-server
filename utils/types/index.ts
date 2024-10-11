@@ -80,6 +80,7 @@ export interface TaskType {
   expected_completion_time: string;
   createdAt: Date;
   completed: boolean;
+  onFocus: boolean;
   completedAt: Date;
   isRoutine: boolean;
   recurrence: RecurrenceType;

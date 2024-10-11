@@ -91,6 +91,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       duration,
       completed,
       completedAt,
+      onFocus,
     } = req.body;
 
     const {
@@ -208,6 +209,19 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       }
     }
 
+    if (
+      onFocus &&
+      (typeof onFocus === "boolean" || typeof onFocus === "string")
+    ) {
+      if (typeof onFocus === "string") {
+        givenValues.onFocus = stringToBoolean(onFocus);
+      } else {
+        if (typeof onFocus === "boolean") {
+          givenValues.onFocus = onFocus;
+        }
+      }
+    }
+
     const searchCriteria: TaskSearchCriteria = {};
     searchCriteria.user = foundUser._id;
     if (queryName && typeof queryName === "string") {
@@ -289,6 +303,11 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(403).json({
         message: "cannot update completed task",
       });
+
+    if (givenValues.onFocus && foundTask.onFocus)
+      return res
+        .status(403)
+        .json({ message: "cannot update onFocus field twice" });
 
     const now = new Date();
     const completedAtDate = new Date(completedAt);

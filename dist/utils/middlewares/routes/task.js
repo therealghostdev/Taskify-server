@@ -71,7 +71,7 @@ const getTask = async (req, res, next) => {
 exports.getTask = getTask;
 const updateTask = async (req, res, next) => {
     try {
-        const { name, category, expected_completion_time, description, recurrence, isRoutine, duration, completed, completedAt, } = req.body;
+        const { name, category, expected_completion_time, description, recurrence, isRoutine, duration, completed, completedAt, onFocus, } = req.body;
         const { name: queryName, category: queryCategory, expected_completion_time: queryExpected_completion_time, description: queryDescription, recurrence: queryRecurrence, isRoutine: queryIsRoutine, completed: queryCompleted, createdAt: queryCreatedAt, } = req.query;
         const currentUser = req.user;
         const foundUser = await user_1.default.findOne({ userName: currentUser.username });
@@ -164,6 +164,17 @@ const updateTask = async (req, res, next) => {
                 });
             }
         }
+        if (onFocus &&
+            (typeof onFocus === "boolean" || typeof onFocus === "string")) {
+            if (typeof onFocus === "string") {
+                givenValues.onFocus = (0, general_1.stringToBoolean)(onFocus);
+            }
+            else {
+                if (typeof onFocus === "boolean") {
+                    givenValues.onFocus = onFocus;
+                }
+            }
+        }
         const searchCriteria = {};
         searchCriteria.user = foundUser._id;
         if (queryName && typeof queryName === "string") {
@@ -240,6 +251,10 @@ const updateTask = async (req, res, next) => {
             return res.status(403).json({
                 message: "cannot update completed task",
             });
+        if (givenValues.onFocus && foundTask.onFocus)
+            return res
+                .status(403)
+                .json({ message: "cannot update onFocus field twice" });
         const now = new Date();
         const completedAtDate = new Date(completedAt);
         const createdAtDate = new Date(foundTask.createdAt);
