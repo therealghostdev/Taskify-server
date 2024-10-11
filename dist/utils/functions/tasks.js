@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createNotification = exports.updateYearlyTasks = exports.updateMonthlyTasks = exports.updateWeeklyTasks = void 0;
+exports.createNotification1 = exports.createNotification = exports.updateYearlyTasks = exports.updateMonthlyTasks = exports.updateWeeklyTasks = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const weeklyTasks_1 = __importDefault(require("../../models/tasks/weeklyTasks"));
 const monthlyTasks_1 = __importDefault(require("../../models/tasks/monthlyTasks"));
@@ -104,3 +104,19 @@ const createNotification = async (token, tasks) => {
     }
 };
 exports.createNotification = createNotification;
+const createNotification1 = async (token, tasks, duration, unit) => {
+    const message = {
+        token,
+        notification: {
+            title: `Reminder for ${tasks.name} in your schedule`,
+            body: `${tasks.name} is expected to be done in ${duration}${unit} are you on track to complete it?`,
+        },
+    };
+    try {
+        await (0, messaging_1.getMessaging)().send(message);
+    }
+    catch (err) {
+        console.error("Error sending notification1:", err);
+    }
+};
+exports.createNotification1 = createNotification1;

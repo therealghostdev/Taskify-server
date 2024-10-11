@@ -49,3 +49,121 @@ node_cron_1.default.schedule("* * * * *", async () => {
         console.error("Error running routine job", err);
     }
 });
+node_cron_1.default.schedule("* * * * *", async () => {
+    try {
+        const now = new Date();
+        const oneHourFromNow = (0, date_fns_1.addHours)(now, 1);
+        const fiftyNineMinutesFromNow = (0, date_fns_1.subMinutes)(oneHourFromNow, 1);
+        const tasks = await task_1.default
+            .find({
+            expected_completion_time: {
+                $gt: fiftyNineMinutesFromNow,
+                $lte: oneHourFromNow,
+            },
+            completed: false,
+        })
+            .populate("user");
+        for (const i of tasks) {
+            const user = i.user;
+            if (user && user.fcmToken && user.timezone) {
+                const userTimeZone = user.timezone;
+                const userNow = (0, date_fns_tz_1.toZonedTime)(now, userTimeZone);
+                const userTaskTime = (0, date_fns_tz_1.toZonedTime)(i.expected_completion_time, userTimeZone);
+                // Check if we're within the 59-60 minute window before the task
+                if ((0, date_fns_1.isAfter)(userTaskTime, userNow) &&
+                    (0, date_fns_1.isBefore)(userTaskTime, (0, date_fns_1.addHours)(userNow, 1)) &&
+                    (0, date_fns_1.isBefore)(userTaskTime, (0, date_fns_1.addHours)(userNow, 1.1)) &&
+                    i.priority > 0 &&
+                    i.priority <= 5 &&
+                    !i.onFocus) {
+                    const taskForNotification = {
+                        ...i.toObject(),
+                        expected_completion_time: i.expected_completion_time.toISOString(),
+                    };
+                    await (0, tasks_1.createNotification1)(user.fcmToken, taskForNotification, 1, "hour");
+                }
+            }
+        }
+    }
+    catch (err) {
+        console.error("Error sending notification", err);
+    }
+});
+node_cron_1.default.schedule("* * * * *", async () => {
+    try {
+        const now = new Date();
+        const fifteenMinutesFromNow = (0, date_fns_1.addMinutes)(now, 15);
+        const fourteenMinutesFromNow = (0, date_fns_1.subMinutes)(fifteenMinutesFromNow, 1);
+        const tasks = await task_1.default
+            .find({
+            expected_completion_time: {
+                $gt: fourteenMinutesFromNow,
+                $lte: fifteenMinutesFromNow,
+            },
+            completed: false,
+        })
+            .populate("user");
+        for (const i of tasks) {
+            const user = i.user;
+            if (user && user.fcmToken && user.timezone) {
+                const userTimeZone = user.timezone;
+                const userNow = (0, date_fns_tz_1.toZonedTime)(now, userTimeZone);
+                const userTaskTime = (0, date_fns_tz_1.toZonedTime)(i.expected_completion_time, userTimeZone);
+                // Check if we're within the 14-15 minute window before the task
+                if ((0, date_fns_1.isAfter)(userTaskTime, userNow) &&
+                    (0, date_fns_1.isBefore)(userTaskTime, (0, date_fns_1.addMinutes)(userNow, 15)) &&
+                    (0, date_fns_1.isBefore)(userTaskTime, (0, date_fns_1.addMinutes)(userNow, 16)) &&
+                    !i.onFocus &&
+                    i.priority > 0 &&
+                    i.priority <= 5) {
+                    const taskNotification = {
+                        ...i.toObject(),
+                        expected_completion_time: i.expected_completion_time.toISOString(),
+                    };
+                    await (0, tasks_1.createNotification1)(user.fcmToken, taskNotification, 15, "minutes");
+                }
+            }
+        }
+    }
+    catch (err) {
+        console.error("Error sending 15-minute notification", err);
+    }
+});
+node_cron_1.default.schedule("* * * * *", async () => {
+    try {
+        const now = new Date();
+        const fiveMinutesFromNow = (0, date_fns_1.addMinutes)(now, 5);
+        const fourMinutesFromNow = (0, date_fns_1.addMinutes)(now, 4);
+        const tasks = await task_1.default
+            .find({
+            expected_completion_time: {
+                $gte: fourMinutesFromNow,
+                $lte: fiveMinutesFromNow,
+            },
+        })
+            .populate("user");
+        for (const i of tasks) {
+            const user = i.user;
+            if (user && user.fcmToken && user.timezone) {
+                const userTimeZone = user.timezone;
+                const userNow = (0, date_fns_tz_1.toZonedTime)(now, userTimeZone);
+                const userTaskTime = (0, date_fns_tz_1.toZonedTime)(i.expected_completion_time, userTimeZone);
+                if ((0, date_fns_1.isAfter)(userTaskTime, userNow) &&
+                    (0, date_fns_1.isBefore)(userTaskTime, (0, date_fns_1.addMinutes)(userNow, 5)) &&
+                    (0, date_fns_1.isBefore)(userTaskTime, (0, date_fns_1.addMinutes)(userNow, 6)) &&
+                    !i.onFocus &&
+                    i.priority > 0 &&
+                    i.priority <= 5) {
+                    const taskNotification = {
+                        ...i.toObject(),
+                        expected_completion_time: i.expected_completion_time.toISOString(),
+                    };
+                    await (0, tasks_1.createNotification1)(user.fcmToken, taskNotification, 5, "minutes");
+                }
+            }
+        }
+    }
+    catch (err) {
+        console.error("Error sending 5-minutes notification:", err);
+    }
+});

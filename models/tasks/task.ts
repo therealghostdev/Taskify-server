@@ -12,7 +12,8 @@ const taskSchema = new Schema<TaskDocument>({
   completed: { type: Boolean, required: true, default: false },
   completedAt: Date,
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  isCounted: {type: Boolean, required:true, default: false},
+  isCounted: { type: Boolean, required: true, default: false },
+  onFocus: { type: Boolean, default: false },
 
   isRoutine: { type: Boolean, default: false },
   triggerTime: { type: String },

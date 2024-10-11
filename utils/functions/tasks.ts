@@ -123,3 +123,24 @@ export const createNotification = async (token: string, tasks: TaskType) => {
     console.error("Error sending notification:", err);
   }
 };
+
+export const createNotification1 = async (
+  token: string,
+  tasks: TaskType,
+  duration: number,
+  unit: string
+) => {
+  const message = {
+    token,
+    notification: {
+      title: `Reminder for ${tasks.name} in your schedule`,
+      body: `${tasks.name} is expected to be done in ${duration}${unit} are you on track to complete it?`,
+    },
+  };
+
+  try {
+    await getMessaging().send(message);
+  } catch (err) {
+    console.error("Error sending notification1:", err);
+  }
+};
