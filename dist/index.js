@@ -45,6 +45,7 @@ const user_1 = require("./routes/user");
 const mongo_sanitize_1 = require("./config/mongo-sanitize");
 const express_rate_limit_1 = require("express-rate-limit");
 const rate_limit_redis_1 = require("rate-limit-redis");
+const firebase_1 = require("./config/firebase");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
@@ -67,6 +68,8 @@ async function main() {
         await (0, redis_1.startRedis)();
         await mongoose_1.default.connect(dbUri);
         console.log("Mongoose connection success");
+        (0, firebase_1.initFirebase)();
+        console.log("Firebase connected");
         app.listen(port, () => {
             console.log(`[server]: Server is running at http://localhost:${port}`);
         });

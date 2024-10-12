@@ -8,19 +8,8 @@ const passport_google_oauth20_1 = require("passport-google-oauth20");
 const dotenv_1 = __importDefault(require("dotenv"));
 const passport = require("passport");
 const user_1 = __importDefault(require("../../models/user"));
+const authentication_1 = require("../../utils/functions/authentication");
 dotenv_1.default.config();
-const createUserSession = (user) => ({
-    _id: user._id,
-    firstname: user.firstName,
-    lastname: user.lastName,
-    username: user.userName,
-    auth_data: {
-        token: "",
-        expires: "",
-        refreshToken: { value: "", version: 0 },
-        csrf: "",
-    },
-});
 passport.use(new passport_google_oauth20_1.Strategy({
     clientID: process.env.GOOGLE_CLIENT_ID || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -60,7 +49,7 @@ passport.use(new passport_google_oauth20_1.Strategy({
                 createdAt: Date.now(),
             });
             await createdUser.save();
-            return done(null, createUserSession(createdUser));
+            return done(null, (0, authentication_1.createUserSession)(createdUser));
         }
         const updatedGoogleProfile = {
             id: profile.id,
@@ -75,9 +64,9 @@ passport.use(new passport_google_oauth20_1.Strategy({
         }
         const updatedUser = await user_1.default.findByIdAndUpdate(foundUser._id, { google_profile: foundUser.google_profile }, { new: true });
         if (!updatedUser) {
-            return done(null, createUserSession(foundUser));
+            return done(null, (0, authentication_1.createUserSession)(foundUser));
         }
-        return done(null, createUserSession(updatedUser));
+        return done(null, (0, authentication_1.createUserSession)(updatedUser));
     }
     catch (err) {
         done(err);
@@ -85,11 +74,11 @@ passport.use(new passport_google_oauth20_1.Strategy({
 }));
 passport.serializeUser((user, done) => {
     // Only store the necessary user session data
-    const sessionUser = createUserSession(user);
+    const sessionUser = (0, authentication_1.createUserSession)(user);
     done(null, sessionUser);
 });
 passport.deserializeUser((user, done) => {
     // Pass only the necessary data to req.user
-    done(null, createUserSession(user));
+    done(null, (0, authentication_1.createUserSession)(user));
 });
 exports.default = passport;

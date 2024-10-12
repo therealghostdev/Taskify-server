@@ -17,6 +17,7 @@ import { userRoute } from "./routes/user";
 import { sanitizeInputs } from "./config/mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
+import { initFirebase } from "./config/firebase";
 
 const envFile =
   process.env.NODE_ENV === "production"
@@ -47,6 +48,9 @@ async function main() {
     await startRedis();
     await mongoose.connect(dbUri);
     console.log("Mongoose connection success");
+
+    initFirebase();
+    console.log("Firebase connected");
 
     app.listen(port, () => {
       console.log(`[server]: Server is running at http://localhost:${port}`);
@@ -91,8 +95,7 @@ const limiter = rateLimit({
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message:
-    "Too many login attempts, please try again after 15 minutes",
+  message: "Too many login attempts, please try again after 15 minutes",
   store: new RedisStore({
     prefix: "login_",
     sendCommand: async (...args: string[]) => await redis.sendCommand(args),

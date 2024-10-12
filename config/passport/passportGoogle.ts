@@ -4,21 +4,9 @@ import dotenv from "dotenv";
 import passport = require("passport");
 import user from "../../models/user";
 import { userSession } from "../../utils/types";
+import { createUserSession } from "../../utils/functions/authentication";
 
 dotenv.config();
-
-const createUserSession = (user: any): userSession => ({
-  _id: user._id,
-  firstname: user.firstName,
-  lastname: user.lastName,
-  username: user.userName,
-  auth_data: {
-    token: "",
-    expires: "",
-    refreshToken: { value: "", version: 0 },
-    csrf: "",
-  },
-});
 
 passport.use(
   new GoogleStrategy(
