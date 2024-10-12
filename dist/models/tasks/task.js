@@ -25,9 +25,8 @@ const taskSchema = new mongoose_1.Schema({
 });
 taskSchema.methods.addTaskToUser = async function () {
     try {
-        const task = this;
-        await (0, mongoose_1.model)("User").findByIdAndUpdate(task.user, {
-            $push: { tasks: task._id },
+        await (0, mongoose_1.model)("User").findByIdAndUpdate(this.user, {
+            $push: { tasks: this._id },
         });
     }
     catch (err) {

@@ -27,9 +27,8 @@ const taskSchema = new Schema<TaskDocument>({
 
 taskSchema.methods.addTaskToUser = async function () {
   try {
-    const task = this as TaskDocument;
-    await model("User").findByIdAndUpdate(task.user, {
-      $push: { tasks: task._id },
+    await model("User").findByIdAndUpdate(this.user, {
+      $push: { tasks: this._id },
     });
   } catch (err) {
     console.log("Something went wrong updating user:", err);
