@@ -156,6 +156,13 @@ const validateTaskUpdateParam = joi.object({
   }),
 });
 
+const validateUserToken = joi.object({
+  fcmToken: joi.string().required().messages({
+    "string.base": "fcmToken field must be a string",
+    "any.required": "fcmToken field is required",
+  }),
+});
+
 export {
   validateUserReg,
   validateUserLogin,
@@ -163,4 +170,5 @@ export {
   validateTaskQuery,
   validateTaskUpdate,
   validateTaskUpdateParam,
+  validateUserToken,
 };

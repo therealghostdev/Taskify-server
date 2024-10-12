@@ -7,6 +7,7 @@ import {
   validateTaskQuery,
   validateTaskUpdate,
   validateTaskUpdateParam,
+  validateUserToken,
 } from "../schema";
 import { userSession, TaskDocument } from "../../../types";
 import user from "../../../../models/user";
@@ -219,6 +220,24 @@ const sortTasks = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const validateUpdateUserTokenBody = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { error } = validateUserToken.validate(req.body);
+
+    if (error)
+      return res.status(400).json({ message: error.details[0].message });
+
+    next();
+  } catch (err) {
+    console.log("Error validating user token");
+    next(err);
+  }
+};
+
 export {
   validateRegisterRequest,
   validateLoginRequest,
@@ -228,4 +247,5 @@ export {
   validateTasksUpdateRequestQparam,
   taskTimeValidator,
   sortTasks,
+  validateUpdateUserTokenBody,
 };

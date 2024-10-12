@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateTaskUpdateParam = exports.validateTaskUpdate = exports.validateTaskQuery = exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
+exports.validateUserToken = exports.validateTaskUpdateParam = exports.validateTaskUpdate = exports.validateTaskQuery = exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
 const joi_1 = __importDefault(require("joi"));
 const validateUserReg = joi_1.default.object({
     username: joi_1.default.string().required().messages({
@@ -136,3 +136,10 @@ const validateTaskUpdateParam = joi_1.default.object({
     }),
 });
 exports.validateTaskUpdateParam = validateTaskUpdateParam;
+const validateUserToken = joi_1.default.object({
+    fcmToken: joi_1.default.string().required().messages({
+        "string.base": "fcmToken field must be a string",
+        "any.required": "fcmToken field is required",
+    }),
+});
+exports.validateUserToken = validateUserToken;

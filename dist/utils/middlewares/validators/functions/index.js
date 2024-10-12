@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sortTasks = exports.taskTimeValidator = exports.validateTasksUpdateRequestQparam = exports.validateTasksUpdateRequestBody = exports.validateTasksRequestQparam = exports.validateTasksRequest = exports.validateLoginRequest = exports.validateRegisterRequest = void 0;
+exports.validateUpdateUserTokenBody = exports.sortTasks = exports.taskTimeValidator = exports.validateTasksUpdateRequestQparam = exports.validateTasksUpdateRequestBody = exports.validateTasksRequestQparam = exports.validateTasksRequest = exports.validateLoginRequest = exports.validateRegisterRequest = void 0;
 const schema_1 = require("../schema");
 const user_1 = __importDefault(require("../../../../models/user"));
 const dailyTasks_1 = __importDefault(require("../../../../models/tasks/dailyTasks"));
@@ -139,3 +139,16 @@ const sortTasks = async (req, res, next) => {
     }
 };
 exports.sortTasks = sortTasks;
+const validateUpdateUserTokenBody = (req, res, next) => {
+    try {
+        const { error } = schema_1.validateUserToken.validate(req.body);
+        if (error)
+            return res.status(400).json({ message: error.details[0].message });
+        next();
+    }
+    catch (err) {
+        console.log("Error validating user token");
+        next(err);
+    }
+};
+exports.validateUpdateUserTokenBody = validateUpdateUserTokenBody;

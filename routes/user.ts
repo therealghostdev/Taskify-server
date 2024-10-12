@@ -12,8 +12,11 @@ import {
   validateTasksRequestQparam,
   validateTasksUpdateRequestBody,
   validateTasksUpdateRequestQparam,
-  taskTimeValidator, sortTasks
+  taskTimeValidator,
+  sortTasks,
+  validateUpdateUserTokenBody,
 } from "../utils/middlewares/validators/functions";
+import { updateUserToken } from "../utils/middlewares/routes/userToken";
 
 export const userRoute: Router = express.Router();
 
@@ -51,4 +54,12 @@ userRoute.delete(
   csrfMiddleware,
   validateTasksUpdateRequestQparam,
   deleteTask
+);
+
+userRoute.put(
+  "/update_user_token",
+  validateAuthentication,
+  csrfMiddleware,
+  validateUpdateUserTokenBody,
+  updateUserToken
 );
