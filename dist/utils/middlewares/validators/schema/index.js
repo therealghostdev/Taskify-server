@@ -60,10 +60,16 @@ const validateTaskUpdate = joi_1.default.object({
     name: joi_1.default.string().min(3).messages({
         "string.base": "Task name must be a string => (request body Error)",
         "string.min": "Task name must be 3 characters or more => (request body Error)",
+        "any.required": "name is required => (request body Error)",
     }),
     description: joi_1.default.string().min(10).messages({
         "string.base": "Description must be a string => (request body Error)",
         "string.min": "Description must be a minimum of 10 characters => (request body Error)",
+    }),
+    priority: joi_1.default.number().min(1).max(10).messages({
+        "number.base": "priority must be a string => (search query Error)",
+        "number.min": "priority must be a minimum of 1 => (search query Error)",
+        "number.max": "priority must be not be more that 10 => (search query Error)",
     }),
     category: joi_1.default.string().min(4).messages({
         "string.base": "Category must be a string => (request body Error)",
@@ -105,6 +111,11 @@ const validateTaskUpdateParam = joi_1.default.object({
     description: joi_1.default.string().min(10).messages({
         "string.base": "Description must be a string => (search query Error)",
         "string.min": "Description must be a minimum of 10 characters => (search query Error)",
+    }),
+    priority: joi_1.default.number().min(1).max(10).messages({
+        "number.base": "priority must be a string => (search query Error)",
+        "number.min": "priority must be a minimum of 1 => (search query Error)",
+        "number.max": "priority must be not be more that 10 => (search query Error)",
     }),
     category: joi_1.default.string().min(4).messages({
         "string.base": "Category must be a string => (search query Error)",

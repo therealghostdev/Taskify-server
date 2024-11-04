@@ -28,18 +28,6 @@ dotenv.config({ path: path.resolve(__dirname, "..", envFile) });
 const app = express();
 app.use(cookieParser());
 
-app.use(
-  session({
-    secret: process.env.RSA_PRIVATE_KEY || "",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60,
-    },
-  })
-);
-
 const port = process.env.PORT || 3000;
 const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 
@@ -64,6 +52,21 @@ main().catch((err) => console.error(err));
 
 app.use(urlencoded({ extended: true }));
 
+app.use(
+  session({
+    secret: process.env.RSA_PRIVATE_KEY || "",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60,
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      httpOnly: true,
+      path: "/",
+    },
+  })
+);
+
 initilizePassportJwt(passport);
 app.use(passport.initialize());
 app.use(passport.session());
@@ -71,7 +74,7 @@ app.use(sanitizeInputs);
 
 app.use(
   cors({
-    origin: "*", // will be replaced with final frontend url
+    origin: process.env.FRONTEND_URL, // replace with final frontend url
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,

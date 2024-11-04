@@ -52,15 +52,6 @@ const envFile = process.env.NODE_ENV === "production"
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
 app.use((0, cookie_parser_1.default)());
-app.use((0, express_session_1.default)({
-    secret: process.env.RSA_PRIVATE_KEY || "",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 1000 * 60 * 60,
-    },
-}));
 const port = process.env.PORT || 3000;
 const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 async function main() {
@@ -80,12 +71,24 @@ async function main() {
 }
 main().catch((err) => console.error(err));
 app.use((0, express_1.urlencoded)({ extended: true }));
+app.use((0, express_session_1.default)({
+    secret: process.env.RSA_PRIVATE_KEY || "",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 1000 * 60 * 60,
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        httpOnly: true,
+        path: "/",
+    },
+}));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
 app.use(mongo_sanitize_1.sanitizeInputs);
 app.use((0, cors_1.default)({
-    origin: "*", // will be replaced with final frontend url
+    origin: process.env.FRONTEND_URL, // replace with final frontend url
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,

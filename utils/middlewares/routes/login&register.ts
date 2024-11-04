@@ -112,6 +112,15 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     userSession.auth_data.refreshToken = token.refreshToken;
     userSession = addCsrfToSession(req, res, userSession);
 
+    console.log(req.session);
+
+    console.log(req.session.cookie);
+    console.log(req.cookies);
+
+    // console.log(res.header("set-cookie"));
+
+    // req.session.user = user as unknown as userSession
+
     return res.status(200).json({ success: true, userSession });
   } catch (err) {
     next(err);
@@ -139,8 +148,31 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     await found.save();
 
     const sessionWithCsrf = addCsrfToSession(req, res, G_user);
+    const sessionToken = sessionWithCsrf.auth_data.token;
+    const token1 = sessionToken.split(" ")[1];
 
-    res.status(200).json({ success: true, userSession: sessionWithCsrf });
+    res.cookie("token1", token1, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.cookie("token2", sessionWithCsrf.auth_data.csrf, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.cookie("token3", sessionWithCsrf.auth_data.refreshToken.value, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(200).redirect(process.env.FRONTEND_URL || "");
   } catch (err) {
     next(err);
   }
@@ -167,7 +199,28 @@ const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
     await found.save();
 
     const sessionWithCsrf = addCsrfToSession(req, res, apple_user);
-    res.status(200).json({ success: true, userSession: sessionWithCsrf });
+    const sessionToken = sessionWithCsrf.auth_data.token;
+    const token1 = sessionToken.split(" ")[1];
+
+    res.cookie("token1", token1, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
+
+    res.cookie("token2", sessionWithCsrf.auth_data.csrf, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
+
+    res.cookie("token3", sessionWithCsrf.auth_data.refreshToken.value, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
+
+    res.status(200).redirect(process.env.FRONTEND_URL || "");
   } catch (err) {
     next(err);
   }
@@ -306,6 +359,8 @@ const validateAuthentication = async (
       return res.status(404).json({ message: "User not found" });
 
     req.user = createUserSession(authenticatedUser);
+    req.session.user = createUserSession(authenticatedUser);
+
     next();
   } catch (err) {
     next(err);
@@ -342,7 +397,10 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
     };
 
     res.clearCookie("connect.sid", cookieOptions);
-    res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions);
+
+    process.env.NODE_ENV === "production"
+      ? res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions)
+      : res.clearCookie("psifi.x-csrf-token", cookieOptions);
 
     if (req.session) {
       req.session.destroy((err) => {

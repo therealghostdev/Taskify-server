@@ -30,7 +30,7 @@ export interface userType extends Document {
 }
 
 export interface userSession {
-  _id?: any;
+  _id: any;
   firstname: string;
   lastname: string;
   username: string;

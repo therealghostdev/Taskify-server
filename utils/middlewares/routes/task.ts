@@ -57,11 +57,21 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
     const selectedDate = new Date(filter_by_date as string);
     const foundTask = await task.find({
       user: foundUser._id,
-      createdAt: {
-        $gte: new Date(selectedDate.setUTCHours(0, 0, 0, 0)),
-        $lt: new Date(selectedDate.setUTCHours(23, 59, 59, 999)),
-      },
       completed,
+      $or: [
+        {
+          createdAt: {
+            $gte: new Date(selectedDate.setUTCHours(0, 0, 0, 0)),
+            $lt: new Date(selectedDate.setUTCHours(23, 59, 59, 999)),
+          },
+        },
+        {
+          expected_completion_time: {
+            $gte: new Date(selectedDate.setUTCHours(0, 0, 0, 0)),
+            $lt: new Date(selectedDate.setUTCHours(23, 59, 59, 999)),
+          },
+        },
+      ],
     });
 
     if (!foundTask || foundTask.length === 0)
@@ -92,6 +102,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       completed,
       completedAt,
       onFocus,
+      priority,
     } = req.body;
 
     const {
@@ -103,6 +114,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       isRoutine: queryIsRoutine,
       completed: queryCompleted,
       createdAt: queryCreatedAt,
+      priority: queryPriority,
     } = req.query;
 
     const currentUser = req.user as userSession;
@@ -125,6 +137,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     const givenValues: PartialTaskUpdate = {};
     if (name) givenValues.name = name;
     if (category) givenValues.category = category;
+    if (priority) givenValues.priority = Number(priority);
     if (expected_completion_time) {
       if (isoDateTimeRegex.test(expected_completion_time)) {
         const time = new Date(expected_completion_time).getTime();
@@ -162,10 +175,10 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       const completedTime = new Date(completedAt).getTime();
       if (typeof completed === "string") {
         if (
-          (stringToBoolean(completed) && !duration) ||
-          duration <= 0 ||
-          !completedAt ||
-          isNaN(completedTime)
+          (stringToBoolean(completed) === true && !duration) ||
+          (stringToBoolean(completed) === true && duration <= 0) ||
+          (stringToBoolean(completed) === true && !completedAt) ||
+          (stringToBoolean(completed) === true && isNaN(completedTime))
         ) {
           return res.status(400).json({
             message:
@@ -176,10 +189,10 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
         }
       } else if (typeof completed === "boolean") {
         if (
-          (completed && !duration) ||
-          duration <= 0 ||
-          !completedAt ||
-          isNaN(completedTime)
+          (completed === true && !duration) ||
+          (completed === true && duration <= 0) ||
+          (completed === true && !completedAt) ||
+          (completed === true && isNaN(completedTime))
         ) {
           return res.status(400).json({
             message:
@@ -227,6 +240,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     if (queryName && typeof queryName === "string") {
       searchCriteria.name = { $regex: new RegExp(queryName, "i") };
     }
+    if (queryPriority) searchCriteria.priority = Number(queryPriority);
     if (queryCategory && typeof queryCategory === "string") {
       searchCriteria.category = queryCategory;
     }
@@ -324,6 +338,12 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     if (completedAtDate > fiveMinutesFromNow) {
       return res.status(403).json({
         message: "Completion date cannot be too far in the future",
+      });
+    }
+
+    if (givenValues.priority && isNaN(givenValues.priority)) {
+      return res.status(400).json({
+        message: "priority value is invalid",
       });
     }
 
