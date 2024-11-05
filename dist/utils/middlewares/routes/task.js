@@ -42,31 +42,29 @@ const getTask = async (req, res, next) => {
         const foundUser = await user_1.default.findOne({ userName: currentUser.username });
         if (!foundUser)
             return res.status(404).json({ message: "User not found" });
-        let completed = false;
-        if (status && status !== "") {
-            completed = status === "complete";
+        if (!filter_by_date ||
+            isNaN(new Date(filter_by_date).getTime())) {
+            return res
+                .status(400)
+                .json({ message: "Invalid or missing date filter" });
         }
         const selectedDate = new Date(filter_by_date);
-        const foundTask = await task_1.default.find({
+        const startOfDay = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), selectedDate.getUTCDate(), 0, 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), selectedDate.getUTCDate(), 23, 59, 59, 998 // Prevent overlap with next day midnight
+        ));
+        const completed = status === "complete";
+        const foundTask = await task_1.default
+            .find({
             user: foundUser._id,
             completed,
             $or: [
-                {
-                    createdAt: {
-                        $gte: new Date(selectedDate.setUTCHours(0, 0, 0, 0)),
-                        $lt: new Date(selectedDate.setUTCHours(23, 59, 59, 999)),
-                    },
-                },
-                {
-                    expected_completion_time: {
-                        $gte: new Date(selectedDate.setUTCHours(0, 0, 0, 0)),
-                        $lt: new Date(selectedDate.setUTCHours(23, 59, 59, 999)),
-                    },
-                },
+                { createdAt: { $gte: startOfDay, $lt: endOfDay } },
+                { expected_completion_time: { $gte: startOfDay, $lt: endOfDay } },
             ],
-        });
+        })
+            .exec();
         if (!foundTask || foundTask.length === 0)
-            return res.status(404).json({ message: "task not found" });
+            return res.status(404).json({ message: "Task not found" });
         const cached = await (0, authentication_1.getCacheTaskData)(foundUser.tasks.toString());
         if (cached && foundUser.tasks.length === cached.length)
             return res.status(200).json({ message: "Successful", data: cached });
@@ -74,7 +72,7 @@ const getTask = async (req, res, next) => {
         res.status(200).json({ message: "Successful", data: foundTask });
     }
     catch (err) {
-        console.log(err);
+        console.error("Error in getTask function:", err);
         next(err);
     }
 };
