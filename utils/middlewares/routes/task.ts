@@ -80,18 +80,20 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
       )
     );
 
-    const completed = status === "complete";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: any = {
+      user: foundUser._id,
+      $or: [
+        { createdAt: { $gte: startOfDay, $lt: endOfDay } },
+        { expected_completion_time: { $gte: startOfDay, $lt: endOfDay } },
+      ],
+    };
 
-    const foundTask = await task
-      .find({
-        user: foundUser._id,
-        completed,
-        $or: [
-          { createdAt: { $gte: startOfDay, $lt: endOfDay } },
-          { expected_completion_time: { $gte: startOfDay, $lt: endOfDay } },
-        ],
-      })
-      .exec();
+    if (status === "complete" || status === "incomplete") {
+      query.completed = status === "complete";
+    }
+
+    const foundTask = await task.find(query).exec();
 
     if (!foundTask || foundTask.length === 0)
       return res.status(404).json({ message: "Task not found" });
@@ -345,7 +347,18 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     const now = new Date();
     const completedAtDate = new Date(completedAt);
     const createdAtDate = new Date(foundTask.createdAt);
+    const expectedCompletionDate = new Date(foundTask.expected_completion_time);
     const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+
+    const twentyFourHoursAfterExpected = new Date(
+      expectedCompletionDate.getTime() + 24 * 60 * 60 * 1000
+    );
+
+  //   console.log('Debug times:', {
+  //     currentTime: now.toISOString(),
+  //     completionTime: completedAtDate.toISOString(),
+  //     fiveMinutesAhead: fiveMinutesFromNow.toISOString()
+  // });
 
     if (completedAt && completedAtDate < createdAtDate) {
       return res.status(403).json({
@@ -357,6 +370,13 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     if (completedAtDate > fiveMinutesFromNow) {
       return res.status(403).json({
         message: "Completion date cannot be too far in the future",
+      });
+    }
+
+    if (completedAtDate > twentyFourHoursAfterExpected) {
+      return res.status(403).json({
+        message:
+          "Task cannot be completed more than 24 hours after the expected completion time",
       });
     }
 

@@ -45,13 +45,11 @@ const validateTask = joi.object({
   description: joi.string().required(),
   priority: joi.number().required(),
   category: joi.string().required(),
-  expected_completion_time: joi.date().iso().min("now").required().messages({
+  expected_completion_time: joi.date().iso().required().messages({
     "date.base":
       "'expected_date_of_completion' must be a valid date => (request body Error)",
     "date.iso":
       "'expected_date_of_completion' in request body must be in ISO date format => (request body Error)",
-    "date.min":
-      "'expected_completion_time' cannot be in the past => (request body Error)",
     "any.required": "'expected_completion_time' is required",
   }),
 });
@@ -102,13 +100,11 @@ const validateTaskUpdate = joi.object({
     "date.iso":
       "'completedAt' mut be in ISO date format => (request body Error)",
   }),
-  expected_completion_time: joi.date().iso().min("now").messages({
+  expected_completion_time: joi.date().iso().messages({
     "date.base":
       "'expected_date_of_completion' must be a valid date => (request body Error)",
     "date.iso":
       "'expected_date_of_completion' in request body must be in ISO date format => (request body Error)",
-    "date.min":
-      "'expected_completion_time' cannot be in the past => (request body Error)",
   }),
   recurrence: joi.string().valid("daily", "weekly", "monthly").messages({
     "any.only":

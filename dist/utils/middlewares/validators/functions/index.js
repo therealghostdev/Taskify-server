@@ -56,15 +56,8 @@ const taskTimeValidator = (req, res, next) => {
     const { expected_completion_time } = req.body;
     if (expected_completion_time) {
         const expectedTime = new Date(expected_completion_time); // Already in UTC
-        const currentTime = new Date(); // Current time, local but used as UTC in .getTime()
         if (isNaN(expectedTime.getTime())) {
             return res.status(400).json({ message: "Invalid time format" });
-        }
-        const timeDifferenceMinutes = Math.round((expectedTime.getTime() - currentTime.getTime()) / 60000);
-        if (timeDifferenceMinutes <= 0) {
-            return res.status(400).json({
-                message: "Time value is unacceptable. Please use a time in the future.",
-            });
         }
     }
     next();
@@ -94,7 +87,6 @@ const sortTasks = async (req, res, next) => {
                 $lt: todayEnd,
             },
         });
-        console.log(DailyTasks);
         if (!DailyTasks) {
             DailyTasks = await dailyTasks_1.default.create({
                 date: today,
