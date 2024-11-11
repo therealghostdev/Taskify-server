@@ -16,13 +16,13 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const crypto_1 = __importDefault(require("crypto"));
 const redis_1 = require("../../config/redis");
 dotenv_1.default.config();
-function issueJWT(user) {
+function issueJWT(user, version) {
     const _id = user._id;
-    const tokenVersion = 0;
-    const expiresIn = "1d";
+    const tokenVersion = version || 0;
+    const expiresIn = "24h";
     const payload = {
         sub: _id,
-        iat: Date.now(),
+        iat: Math.floor(Date.now() / 1000),
         version: tokenVersion,
     };
     const PRIV_KEY = process.env.RSA_PRIVATE_KEY;

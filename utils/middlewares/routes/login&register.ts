@@ -8,7 +8,11 @@ import {
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { CookieOptions, userSession } from "../../types";
-import jsonwebtoken, { JwtPayload, JsonWebTokenError } from "jsonwebtoken";
+import jsonwebtoken, {
+  JwtPayload,
+  JsonWebTokenError,
+  TokenExpiredError,
+} from "jsonwebtoken";
 import dotenv from "dotenv";
 import { redis } from "../../../config/redis";
 import { addCsrfToSession } from "../../../config/csrf-csrf";
@@ -111,15 +115,6 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     userSession.auth_data.expires = token.expires;
     userSession.auth_data.refreshToken = token.refreshToken;
     userSession = addCsrfToSession(req, res, userSession);
-
-    console.log(req.session);
-
-    console.log(req.session.cookie);
-    console.log(req.cookies);
-
-    // console.log(res.header("set-cookie"));
-
-    // req.session.user = user as unknown as userSession
 
     return res.status(200).json({ success: true, userSession });
   } catch (err) {
@@ -271,10 +266,18 @@ const refreshToken = async (
         process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
       ) as JwtPayload;
     } catch (err) {
-      if (err instanceof JsonWebTokenError) {
+      if (err instanceof TokenExpiredError) {
+        verifyToken = jsonwebtoken.decode(token) as JwtPayload;
+        if (!verifyToken) {
+          return res
+            .status(401)
+            .json({ message: "Invalid or malformed token" });
+        }
+      } else if (err instanceof JsonWebTokenError) {
         return res.status(401).json({ message: "Invalid signature or token" });
+      } else {
+        return res.status(400).json({ message: "Could not verify token" });
       }
-      return res.status(400).json({ message: "Could not verify token" });
     }
 
     if (!verifyToken) {
@@ -291,33 +294,36 @@ const refreshToken = async (
       const expiry = Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await blacklistToken(currentUserToken, expiry);
       await blacklistToken(token, expiry);
-      console.log("token blacklisted");
     }
 
     const newVersion = currentVersion + 1;
-    const payload = {
-      sub: currentUser.id,
-      iat: Date.now() / 1000,
-      version: newVersion,
+
+    let userSession: userSession = {
+      _id: currentUser._id,
+      firstname: currentUser.firstName,
+      lastname: currentUser.lastName,
+      username: currentUser.userName,
+      auth_data: {
+        token: "",
+        expires: "",
+        refreshToken: { value: "", version: 0 },
+        csrf: "",
+      },
     };
-    const issuedToken = jsonwebtoken.sign(
-      payload,
-      process.env.RSA_PRIVATE_KEY || "",
-      { expiresIn: "1d", algorithm: "RS256" }
-    );
 
-    const refreshToken = jsonwebtoken.sign(
-      payload,
-      process.env.RSA_PRIVATE_KEY || "",
-      { algorithm: "RS256" }
-    );
+    const newAuthValues = issueJWT(userSession, newVersion);
 
-    currentUser.refreshToken.value = refreshToken;
+    currentUser.refreshToken = newAuthValues.refreshToken;
     currentUser.refreshToken.version = newVersion;
 
     await currentUser.save();
 
-    res.status(200).json({ token: issuedToken });
+    userSession.auth_data.token = newAuthValues.token;
+    userSession.auth_data.expires = newAuthValues.expires;
+    userSession.auth_data.refreshToken = newAuthValues.refreshToken;
+    userSession = addCsrfToSession(req, res, userSession);
+
+    return res.status(200).json({ success: true, userSession });
   } catch (err) {
     next(err);
   }

@@ -7,15 +7,15 @@ import { redis } from "../../config/redis";
 
 dotenv.config();
 
-function issueJWT(user: userSession) {
+function issueJWT(user: userSession, version?: number) {
   const _id = user._id;
-  const tokenVersion = 0;
+  const tokenVersion = version || 0;
 
-  const expiresIn = "1d";
+  const expiresIn = "24h";
 
   const payload = {
     sub: _id,
-    iat: Date.now(),
+    iat: Math.floor(Date.now() / 1000),
     version: tokenVersion,
   };
 
