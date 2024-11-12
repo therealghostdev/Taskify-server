@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateUserToken = exports.validateTaskUpdateParam = exports.validateTaskUpdate = exports.validateTaskQuery = exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
+exports.validateGivenTimezone = exports.validateUserToken = exports.validateTaskUpdateParam = exports.validateTaskUpdate = exports.validateTaskQuery = exports.validateTask = exports.validateUserLogin = exports.validateUserReg = void 0;
 const joi_1 = __importDefault(require("joi"));
 const validateUserReg = joi_1.default.object({
     username: joi_1.default.string().required().messages({
@@ -152,3 +152,10 @@ const validateUserToken = joi_1.default.object({
     }),
 });
 exports.validateUserToken = validateUserToken;
+const validateGivenTimezone = joi_1.default.object({
+    timezone: joi_1.default.string().required().messages({
+        "string.base": "timezone field must be a string",
+        "any.required": "timezone isn't given",
+    }),
+});
+exports.validateGivenTimezone = validateGivenTimezone;

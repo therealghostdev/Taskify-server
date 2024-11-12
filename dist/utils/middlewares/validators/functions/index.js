@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateUpdateUserTokenBody = exports.sortTasks = exports.taskTimeValidator = exports.validateTasksUpdateRequestQparam = exports.validateTasksUpdateRequestBody = exports.validateTasksRequestQparam = exports.validateTasksRequest = exports.validateLoginRequest = exports.validateRegisterRequest = void 0;
+exports.validateUpdateTimezoneBody = exports.validateUpdateUserTokenBody = exports.sortTasks = exports.taskTimeValidator = exports.validateTasksUpdateRequestQparam = exports.validateTasksUpdateRequestBody = exports.validateTasksRequestQparam = exports.validateTasksRequest = exports.validateLoginRequest = exports.validateRegisterRequest = void 0;
 const schema_1 = require("../schema");
 const user_1 = __importDefault(require("../../../../models/user"));
 const dailyTasks_1 = __importDefault(require("../../../../models/tasks/dailyTasks"));
@@ -144,3 +144,16 @@ const validateUpdateUserTokenBody = (req, res, next) => {
     }
 };
 exports.validateUpdateUserTokenBody = validateUpdateUserTokenBody;
+const validateUpdateTimezoneBody = (req, res, next) => {
+    try {
+        const { error } = schema_1.validateGivenTimezone.validate(req.body);
+        if (error)
+            return res.status(400).json({ message: error.details[0].message });
+        next();
+    }
+    catch (err) {
+        console.log("Error validating timezone request body");
+        next(err);
+    }
+};
+exports.validateUpdateTimezoneBody = validateUpdateTimezoneBody;

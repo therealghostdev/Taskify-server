@@ -15,8 +15,10 @@ import {
   taskTimeValidator,
   sortTasks,
   validateUpdateUserTokenBody,
+  validateUpdateTimezoneBody,
 } from "../utils/middlewares/validators/functions";
 import { updateUserToken } from "../utils/middlewares/routes/userToken";
+import { updateUserTimezone } from "../utils/middlewares/routes/userTimezone";
 
 export const userRoute: Router = express.Router();
 
@@ -62,4 +64,12 @@ userRoute.put(
   csrfMiddleware,
   validateUpdateUserTokenBody,
   updateUserToken
+);
+
+userRoute.put(
+  "/timezone",
+  validateAuthentication,
+  csrfMiddleware,
+  validateUpdateTimezoneBody,
+  updateUserTimezone
 );

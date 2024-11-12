@@ -8,6 +8,7 @@ import {
   validateTaskUpdate,
   validateTaskUpdateParam,
   validateUserToken,
+  validateGivenTimezone,
 } from "../schema";
 import { userSession, TaskDocument } from "../../../types";
 import user from "../../../../models/user";
@@ -226,6 +227,24 @@ const validateUpdateUserTokenBody = (
   }
 };
 
+const validateUpdateTimezoneBody = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { error } = validateGivenTimezone.validate(req.body);
+
+    if (error)
+      return res.status(400).json({ message: error.details[0].message });
+
+    next();
+  } catch (err) {
+    console.log("Error validating timezone request body");
+    next(err);
+  }
+};
+
 export {
   validateRegisterRequest,
   validateLoginRequest,
@@ -236,4 +255,5 @@ export {
   taskTimeValidator,
   sortTasks,
   validateUpdateUserTokenBody,
+  validateUpdateTimezoneBody,
 };

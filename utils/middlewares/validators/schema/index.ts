@@ -172,6 +172,13 @@ const validateUserToken = joi.object({
   }),
 });
 
+const validateGivenTimezone = joi.object({
+  timezone: joi.string().required().messages({
+    "string.base": "timezone field must be a string",
+    "any.required": "timezone isn't given",
+  }),
+});
+
 export {
   validateUserReg,
   validateUserLogin,
@@ -180,4 +187,5 @@ export {
   validateTaskUpdate,
   validateTaskUpdateParam,
   validateUserToken,
+  validateGivenTimezone,
 };
