@@ -1,5 +1,7 @@
 FROM node:latest
 
+ENV TZ=UTC
+
 WORKDIR /usr/src/taskify
 
 COPY /package*json ./

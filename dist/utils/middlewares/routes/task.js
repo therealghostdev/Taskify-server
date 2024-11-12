@@ -8,6 +8,7 @@ const task_1 = __importDefault(require("../../../models/tasks/task"));
 const user_1 = __importDefault(require("../../../models/user"));
 const authentication_1 = require("../../functions/authentication");
 const general_1 = require("../../functions/general");
+const date_fns_1 = require("date-fns");
 const addTask = async (req, res, next) => {
     try {
         const { name, description, priority, category, expected_completion_time } = req.body;
@@ -258,6 +259,8 @@ const updateTask = async (req, res, next) => {
             }
         }
         const foundTask = await task_1.default.findOne(searchCriteria);
+        console.log(foundTask, "task");
+        console.log(searchCriteria, "task search params");
         if (!foundTask)
             return res.status(404).json({ message: "Task not found" });
         if (foundTask.completed)
@@ -268,30 +271,33 @@ const updateTask = async (req, res, next) => {
             return res
                 .status(403)
                 .json({ message: "cannot update onFocus field twice" });
+        const userTimezone = foundUser.timezone;
         const now = new Date();
         const completedAtDate = new Date(completedAt);
+        const completedAtDateInUserTz = new Date(completedAtDate.toLocaleDateString("en-GB", { timeZone: userTimezone }));
         const createdAtDate = new Date(foundTask.createdAt);
         const expectedCompletionDate = new Date(foundTask.expected_completion_time);
-        const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+        const fiveMinutesFromNow = (0, date_fns_1.addMinutes)(now, 5);
+        const fiveMinutesFromNowInUserTz = new Date(fiveMinutesFromNow.toLocaleDateString("en-GB", { timeZone: userTimezone }));
         const twentyFourHoursAfterExpected = new Date(expectedCompletionDate.getTime() + 24 * 60 * 60 * 1000);
-        //   console.log('Debug times:', {
-        //     currentTime: now.toISOString(),
-        //     completionTime: completedAtDate.toISOString(),
-        //     fiveMinutesAhead: fiveMinutesFromNow.toISOString()
-        // });
+        const twentyFourHoursAfterExpectedInUserTz = new Date(twentyFourHoursAfterExpected.toLocaleDateString("en-GB", {
+            timeZone: userTimezone,
+        }));
         if (completedAt && completedAtDate < createdAtDate) {
             return res.status(403).json({
                 message: "completion date cannot preceed creation date use a day in the future for 'completedAt field'",
             });
         }
-        if (completedAtDate > fiveMinutesFromNow) {
+        if (completedAtDateInUserTz &&
+            (0, date_fns_1.isAfter)(completedAtDateInUserTz, fiveMinutesFromNowInUserTz)) {
             return res.status(403).json({
-                message: "Completion date cannot be too far in the future",
+                message: "Completion date cannot be too far in the future.",
             });
         }
-        if (completedAtDate > twentyFourHoursAfterExpected) {
+        if (completedAtDateInUserTz &&
+            (0, date_fns_1.isAfter)(completedAtDateInUserTz, twentyFourHoursAfterExpectedInUserTz)) {
             return res.status(403).json({
-                message: "Task cannot be completed more than 24 hours after the expected completion time",
+                message: "Task cannot be completed more than 24 hours after the expected completion time.",
             });
         }
         if (givenValues.priority && isNaN(givenValues.priority)) {
