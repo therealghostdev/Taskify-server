@@ -5,6 +5,7 @@ import { userSession, TaskType, RecurrenceType } from "../../types";
 import {
   cacheTaskData,
   getCacheTaskData,
+  invalidateCacheTaskData,
 } from "../../functions/authentication";
 import { stringToBoolean } from "../../functions/general";
 import { addMinutes, isAfter } from "date-fns";
@@ -405,6 +406,7 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
 
+    await invalidateCacheTaskData(foundUser.tasks.toString());
     await task.updateOne({ _id: foundTask._id }, { $set: givenValues });
     await foundUser.updateTaskCounts();
 

@@ -80,13 +80,17 @@ async function blacklistToken(key: string, exp: number) {
 }
 
 async function cacheTaskData(key: string, data: string) {
-  await redis.set(`cache_task${key}`, data);
+  await redis.set(`cache_task_${key}`, data);
 }
 
 async function getCacheTaskData(key: string) {
-  const cachedData = await redis.get(`cache_task${key}`);
+  const cachedData = await redis.get(`cache_task_${key}`);
   return cachedData ? JSON.parse(cachedData) : null;
 }
+
+const invalidateCacheTaskData = async (key: string) => {
+  await redis.del(`cache_task_${key}`);
+};
 
 export {
   issueJWT,
@@ -96,4 +100,5 @@ export {
   createUserSession,
   cacheTaskData,
   getCacheTaskData,
+  invalidateCacheTaskData,
 };

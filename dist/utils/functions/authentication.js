@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUserSession = void 0;
+exports.invalidateCacheTaskData = exports.createUserSession = void 0;
 exports.issueJWT = issueJWT;
 exports.genPassword = genPassword;
 exports.validatePassword = validatePassword;
@@ -77,9 +77,14 @@ async function blacklistToken(key, exp) {
     await redis_1.redis.set(`blacklist_${key}`, "true", { EX: exp });
 }
 async function cacheTaskData(key, data) {
-    await redis_1.redis.set(`cache_task${key}`, data);
+    await redis_1.redis.set(`cache_task_${key}`, data);
 }
 async function getCacheTaskData(key) {
-    const cachedData = await redis_1.redis.get(`cache_task${key}`);
+    const cachedData = await redis_1.redis.get(`cache_task_${key}`);
     return cachedData ? JSON.parse(cachedData) : null;
 }
+const invalidateCacheTaskData = async (key) => {
+    const result = await redis_1.redis.del(`cache_task_${key}`);
+    console.log(`Cache invalidated for key ${key}:`, result ? "Success" : "Failed");
+};
+exports.invalidateCacheTaskData = invalidateCacheTaskData;

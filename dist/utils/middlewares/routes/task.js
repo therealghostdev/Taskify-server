@@ -305,6 +305,7 @@ const updateTask = async (req, res, next) => {
                 message: "priority value is invalid",
             });
         }
+        await (0, authentication_1.invalidateCacheTaskData)(foundUser.tasks.toString());
         await task_1.default.updateOne({ _id: foundTask._id }, { $set: givenValues });
         await foundUser.updateTaskCounts();
         res.status(200).json({ message: "Update action successful" });
