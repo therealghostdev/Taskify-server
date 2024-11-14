@@ -84,7 +84,6 @@ async function getCacheTaskData(key) {
     return cachedData ? JSON.parse(cachedData) : null;
 }
 const invalidateCacheTaskData = async (key) => {
-    const result = await redis_1.redis.del(`cache_task_${key}`);
-    console.log(`Cache invalidated for key ${key}:`, result ? "Success" : "Failed");
+    await redis_1.redis.del(`cache_task_${key}`);
 };
 exports.invalidateCacheTaskData = invalidateCacheTaskData;

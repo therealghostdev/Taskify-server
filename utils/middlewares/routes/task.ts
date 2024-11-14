@@ -49,15 +49,6 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
 
     if (!foundUser) return res.status(404).json({ message: "User not found" });
 
-    if (
-      !filter_by_date ||
-      isNaN(new Date(filter_by_date as string).getTime())
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or missing date filter" });
-    }
-
     const selectedDate = new Date(filter_by_date as string);
     const startOfDay = new Date(
       Date.UTC(
@@ -88,6 +79,7 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
       $or: [
         { createdAt: { $gte: startOfDay, $lt: endOfDay } },
         { expected_completion_time: { $gte: startOfDay, $lt: endOfDay } },
+        { isRoutine: true },
       ],
     };
 
@@ -95,17 +87,75 @@ const getTask = async (req: Request, res: Response, next: NextFunction) => {
       query.completed = status === "complete";
     }
 
-    const foundTask = await task.find(query).exec();
+    const foundTasks = await task.find(query).exec();
 
-    if (!foundTask || foundTask.length === 0)
+    const dailyRecurringTask = foundTasks.filter((task) => {
+      const taskCreatedDate = new Date(task.createdAt);
+      // Reset time to 00:00:00 for both dates
+      taskCreatedDate.setHours(0, 0, 0, 0);
+      const selectedDateWithTime = new Date(selectedDate);
+      selectedDateWithTime.setHours(0, 0, 0, 0);
+
+      if (task.isRoutine && task.recurrence === "daily") {
+        return taskCreatedDate <= selectedDateWithTime;
+      }
+      return false;
+    });
+
+    const weeklyRecurringTask = foundTasks.filter((task) => {
+      const taskCreatedDate = new Date(task.createdAt);
+      // Reset time to 00:00:00 for both dates
+      taskCreatedDate.setHours(0, 0, 0, 0);
+      const selectedDateWithTime = new Date(selectedDate);
+      selectedDateWithTime.setHours(0, 0, 0, 0);
+
+      if (task.isRoutine && task.recurrence === "weekly") {
+        const dayDifference = Math.floor(
+          (selectedDateWithTime.getTime() - taskCreatedDate.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
+        return dayDifference >= 0 && dayDifference % 7 === 0;
+      }
+      return false;
+    });
+
+    const monthlyRecurringTask = foundTasks.filter((task) => {
+      const taskCreatedDate = new Date(task.createdAt);
+      // Reset time to 00:00:00 for both dates
+      taskCreatedDate.setHours(0, 0, 0, 0);
+      const selectedDateWithTime = new Date(selectedDate);
+      selectedDateWithTime.setHours(0, 0, 0, 0);
+
+      if (task.isRoutine && task.recurrence === "monthly") {
+        return (
+          taskCreatedDate.getUTCDate() === selectedDateWithTime.getUTCDate() &&
+          selectedDateWithTime >= taskCreatedDate
+        );
+      }
+      return false;
+    });
+
+    const notRoutineTask = foundTasks.filter((task) => !task.isRoutine);
+
+    const foundValues = [
+      ...(notRoutineTask.length > 0 ? notRoutineTask : []),
+      ...(dailyRecurringTask.length > 0 ? dailyRecurringTask : []),
+      ...(weeklyRecurringTask.length > 0 ? weeklyRecurringTask : []),
+      ...(monthlyRecurringTask.length > 0 ? monthlyRecurringTask : []),
+    ];
+
+    if (!foundValues || foundValues.length === 0)
       return res.status(404).json({ message: "Task not found" });
 
     const cached = await getCacheTaskData(foundUser.tasks.toString());
     if (cached && foundUser.tasks.length === cached.length)
       return res.status(200).json({ message: "Successful", data: cached });
 
-    await cacheTaskData(foundUser.tasks.toString(), JSON.stringify(foundTask));
-    res.status(200).json({ message: "Successful", data: foundTask });
+    await cacheTaskData(
+      foundUser.tasks.toString(),
+      JSON.stringify(foundValues)
+    );
+    res.status(200).json({ message: "Successful", data: foundValues });
   } catch (err) {
     console.error("Error in getTask function:", err);
     next(err);
@@ -333,8 +383,6 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     const foundTask = await task.findOne(searchCriteria);
-    console.log(foundTask, "task");
-    console.log(searchCriteria, "task search params");
 
     if (!foundTask) return res.status(404).json({ message: "Task not found" });
 
@@ -403,6 +451,12 @@ const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     if (givenValues.priority && isNaN(givenValues.priority)) {
       return res.status(400).json({
         message: "priority value is invalid",
+      });
+    }
+
+    if (givenValues.completed && foundTask.isRoutine) {
+      return res.status(403).json({
+        message: "This task is a routine, remove from routine and try again!",
       });
     }
 

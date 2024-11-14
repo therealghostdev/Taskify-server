@@ -43,12 +43,6 @@ const getTask = async (req, res, next) => {
         const foundUser = await user_1.default.findOne({ userName: currentUser.username });
         if (!foundUser)
             return res.status(404).json({ message: "User not found" });
-        if (!filter_by_date ||
-            isNaN(new Date(filter_by_date).getTime())) {
-            return res
-                .status(400)
-                .json({ message: "Invalid or missing date filter" });
-        }
         const selectedDate = new Date(filter_by_date);
         const startOfDay = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), selectedDate.getUTCDate(), 0, 0, 0, 0));
         const endOfDay = new Date(Date.UTC(selectedDate.getUTCFullYear(), selectedDate.getUTCMonth(), selectedDate.getUTCDate(), 23, 59, 59, 998 // Prevent overlap with next day midnight
@@ -59,19 +53,63 @@ const getTask = async (req, res, next) => {
             $or: [
                 { createdAt: { $gte: startOfDay, $lt: endOfDay } },
                 { expected_completion_time: { $gte: startOfDay, $lt: endOfDay } },
+                { isRoutine: true },
             ],
         };
         if (status === "complete" || status === "incomplete") {
             query.completed = status === "complete";
         }
-        const foundTask = await task_1.default.find(query).exec();
-        if (!foundTask || foundTask.length === 0)
+        const foundTasks = await task_1.default.find(query).exec();
+        const dailyRecurringTask = foundTasks.filter((task) => {
+            const taskCreatedDate = new Date(task.createdAt);
+            // Reset time to 00:00:00 for both dates
+            taskCreatedDate.setHours(0, 0, 0, 0);
+            const selectedDateWithTime = new Date(selectedDate);
+            selectedDateWithTime.setHours(0, 0, 0, 0);
+            if (task.isRoutine && task.recurrence === "daily") {
+                return taskCreatedDate <= selectedDateWithTime;
+            }
+            return false;
+        });
+        const weeklyRecurringTask = foundTasks.filter((task) => {
+            const taskCreatedDate = new Date(task.createdAt);
+            // Reset time to 00:00:00 for both dates
+            taskCreatedDate.setHours(0, 0, 0, 0);
+            const selectedDateWithTime = new Date(selectedDate);
+            selectedDateWithTime.setHours(0, 0, 0, 0);
+            if (task.isRoutine && task.recurrence === "weekly") {
+                const dayDifference = Math.floor((selectedDateWithTime.getTime() - taskCreatedDate.getTime()) /
+                    (1000 * 60 * 60 * 24));
+                return dayDifference >= 0 && dayDifference % 7 === 0;
+            }
+            return false;
+        });
+        const monthlyRecurringTask = foundTasks.filter((task) => {
+            const taskCreatedDate = new Date(task.createdAt);
+            // Reset time to 00:00:00 for both dates
+            taskCreatedDate.setHours(0, 0, 0, 0);
+            const selectedDateWithTime = new Date(selectedDate);
+            selectedDateWithTime.setHours(0, 0, 0, 0);
+            if (task.isRoutine && task.recurrence === "monthly") {
+                return (taskCreatedDate.getUTCDate() === selectedDateWithTime.getUTCDate() &&
+                    selectedDateWithTime >= taskCreatedDate);
+            }
+            return false;
+        });
+        const notRoutineTask = foundTasks.filter((task) => !task.isRoutine);
+        const foundValues = [
+            ...(notRoutineTask.length > 0 ? notRoutineTask : []),
+            ...(dailyRecurringTask.length > 0 ? dailyRecurringTask : []),
+            ...(weeklyRecurringTask.length > 0 ? weeklyRecurringTask : []),
+            ...(monthlyRecurringTask.length > 0 ? monthlyRecurringTask : []),
+        ];
+        if (!foundValues || foundValues.length === 0)
             return res.status(404).json({ message: "Task not found" });
         const cached = await (0, authentication_1.getCacheTaskData)(foundUser.tasks.toString());
         if (cached && foundUser.tasks.length === cached.length)
             return res.status(200).json({ message: "Successful", data: cached });
-        await (0, authentication_1.cacheTaskData)(foundUser.tasks.toString(), JSON.stringify(foundTask));
-        res.status(200).json({ message: "Successful", data: foundTask });
+        await (0, authentication_1.cacheTaskData)(foundUser.tasks.toString(), JSON.stringify(foundValues));
+        res.status(200).json({ message: "Successful", data: foundValues });
     }
     catch (err) {
         console.error("Error in getTask function:", err);
@@ -259,8 +297,6 @@ const updateTask = async (req, res, next) => {
             }
         }
         const foundTask = await task_1.default.findOne(searchCriteria);
-        console.log(foundTask, "task");
-        console.log(searchCriteria, "task search params");
         if (!foundTask)
             return res.status(404).json({ message: "Task not found" });
         if (foundTask.completed)
@@ -303,6 +339,11 @@ const updateTask = async (req, res, next) => {
         if (givenValues.priority && isNaN(givenValues.priority)) {
             return res.status(400).json({
                 message: "priority value is invalid",
+            });
+        }
+        if (givenValues.completed && foundTask.isRoutine) {
+            return res.status(403).json({
+                message: "This task is a routine, remove from routine and try again!",
             });
         }
         await (0, authentication_1.invalidateCacheTaskData)(foundUser.tasks.toString());
