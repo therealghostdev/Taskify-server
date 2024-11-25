@@ -123,7 +123,7 @@ export interface UserDocument extends Document {
     incomplete: number;
     total: number;
   };
-  fcmToken: string;
+  fcmToken: { token: string; timestamp: Date };
   timezone: string;
   updateTaskCounts: () => Promise<void>;
 }

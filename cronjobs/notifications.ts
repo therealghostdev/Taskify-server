@@ -29,7 +29,7 @@ cron.schedule("* * * * *", async () => {
     for (const i of tasks) {
       const user = i.user as unknown as UserDocument;
 
-      if (user && user.fcmToken && user.timezone) {
+      if (user && user.fcmToken.token && user.timezone) {
         const userTimeZone = user.timezone;
         const userNow = toZonedTime(now, userTimeZone);
         const taskTriggerTime = toZonedTime(i.nextTrigger, userTimeZone);
@@ -40,7 +40,7 @@ cron.schedule("* * * * *", async () => {
             expected_completion_time: i.expected_completion_time.toISOString(),
           };
 
-          await createNotification(user.fcmToken, taskForNotification);
+          await createNotification(user.fcmToken.token, taskForNotification);
 
           const nextTrigger = new Date(taskTriggerTime);
 
@@ -104,7 +104,7 @@ cron.schedule("* * * * *", async () => {
           };
 
           await createNotification1(
-            user.fcmToken,
+            user.fcmToken.token,
             taskForNotification,
             1,
             "hour"
@@ -158,7 +158,7 @@ cron.schedule("* * * * *", async () => {
           };
 
           await createNotification1(
-            user.fcmToken,
+            user.fcmToken.token,
             taskNotification,
             15,
             "minutes"
@@ -210,7 +210,7 @@ cron.schedule("* * * * *", async () => {
             expected_completion_time: i.expected_completion_time.toISOString(),
           };
           await createNotification1(
-            user.fcmToken,
+            user.fcmToken.token,
             taskNotification,
             5,
             "minutes"

@@ -19,7 +19,7 @@ node_cron_1.default.schedule("* * * * *", async () => {
             .populate("user");
         for (const i of tasks) {
             const user = i.user;
-            if (user && user.fcmToken && user.timezone) {
+            if (user && user.fcmToken.token && user.timezone) {
                 const userTimeZone = user.timezone;
                 const userNow = (0, date_fns_tz_1.toZonedTime)(now, userTimeZone);
                 const taskTriggerTime = (0, date_fns_tz_1.toZonedTime)(i.nextTrigger, userTimeZone);
@@ -28,7 +28,7 @@ node_cron_1.default.schedule("* * * * *", async () => {
                         ...i.toObject(),
                         expected_completion_time: i.expected_completion_time.toISOString(),
                     };
-                    await (0, tasks_1.createNotification)(user.fcmToken, taskForNotification);
+                    await (0, tasks_1.createNotification)(user.fcmToken.token, taskForNotification);
                     const nextTrigger = new Date(taskTriggerTime);
                     if (i.recurrence === "daily") {
                         nextTrigger.setDate(nextTrigger.getDate() + 1);
@@ -80,7 +80,7 @@ node_cron_1.default.schedule("* * * * *", async () => {
                         ...i.toObject(),
                         expected_completion_time: i.expected_completion_time.toISOString(),
                     };
-                    await (0, tasks_1.createNotification1)(user.fcmToken, taskForNotification, 1, "hour");
+                    await (0, tasks_1.createNotification1)(user.fcmToken.token, taskForNotification, 1, "hour");
                 }
             }
         }
@@ -120,7 +120,7 @@ node_cron_1.default.schedule("* * * * *", async () => {
                         ...i.toObject(),
                         expected_completion_time: i.expected_completion_time.toISOString(),
                     };
-                    await (0, tasks_1.createNotification1)(user.fcmToken, taskNotification, 15, "minutes");
+                    await (0, tasks_1.createNotification1)(user.fcmToken.token, taskNotification, 15, "minutes");
                 }
             }
         }
@@ -158,7 +158,7 @@ node_cron_1.default.schedule("* * * * *", async () => {
                         ...i.toObject(),
                         expected_completion_time: i.expected_completion_time.toISOString(),
                     };
-                    await (0, tasks_1.createNotification1)(user.fcmToken, taskNotification, 5, "minutes");
+                    await (0, tasks_1.createNotification1)(user.fcmToken.token, taskNotification, 5, "minutes");
                 }
             }
         }

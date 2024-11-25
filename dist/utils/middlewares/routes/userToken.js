@@ -12,7 +12,8 @@ const updateUserToken = async (req, res, next) => {
         const foundUser = await user_1.default.findOne({ userName: currentUser.username });
         if (!foundUser)
             return res.status(404).json({ message: "User not found" });
-        await user_1.default.updateOne({ _id: foundUser._id }, { fcmToken });
+        const token = { token: fcmToken, timestamp: Date.now() };
+        await user_1.default.updateOne({ _id: foundUser._id }, { fcmToken: token });
         res.status(200).json({ message: "Token updated" });
     }
     catch (err) {

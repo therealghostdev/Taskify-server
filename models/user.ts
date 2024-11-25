@@ -33,7 +33,7 @@ const userSchema = new Schema<UserDocument>({
       total: { type: Number },
     },
   ],
-  fcmToken: String,
+  fcmToken: { token: { type: String }, timestamp: { Date } },
   timezone: String,
 });
 
