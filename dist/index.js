@@ -45,21 +45,13 @@ const user_1 = require("./routes/user");
 const mongo_sanitize_1 = require("./config/mongo-sanitize");
 const express_rate_limit_1 = require("express-rate-limit");
 const rate_limit_redis_1 = require("rate-limit-redis");
+const firebase_1 = require("./config/firebase");
 const envFile = process.env.NODE_ENV === "production"
     ? ".env.production"
     : ".env.development";
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "..", envFile) });
 const app = (0, express_1.default)();
 app.use((0, cookie_parser_1.default)());
-app.use((0, express_session_1.default)({
-    secret: process.env.RSA_PRIVATE_KEY || "",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 1000 * 60 * 60,
-    },
-}));
 const port = process.env.PORT || 3000;
 const dbUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/taskify";
 async function main() {
@@ -67,6 +59,9 @@ async function main() {
         await (0, redis_1.startRedis)();
         await mongoose_1.default.connect(dbUri);
         console.log("Mongoose connection success");
+        (0, firebase_1.initFirebase)();
+        console.log("Firebase connected");
+        await Promise.resolve().then(() => __importStar(require("./cronjobs/notifications")));
         app.listen(port, () => {
             console.log(`[server]: Server is running at http://localhost:${port}`);
         });
@@ -77,12 +72,24 @@ async function main() {
 }
 main().catch((err) => console.error(err));
 app.use((0, express_1.urlencoded)({ extended: true }));
+app.use((0, express_session_1.default)({
+    secret: process.env.RSA_PRIVATE_KEY || "",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 1000 * 60 * 60,
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        httpOnly: true,
+        path: "/",
+    },
+}));
 (0, passportJwt_1.default)(passport_1.default);
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
 app.use(mongo_sanitize_1.sanitizeInputs);
 app.use((0, cors_1.default)({
-    origin: "*", // will be replaced with final frontend url
+    origin: process.env.FRONTEND_URL, // replace with final frontend url
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
     credentials: true,

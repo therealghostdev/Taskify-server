@@ -7,10 +7,14 @@ dotenv.config();
 
 const { doubleCsrfProtection, generateToken } = doubleCsrf({
   getSecret: () => process.env.RSA_PRIVATE_KEY || "",
-  cookieName: "__Host-psifi.x-csrf-token",
+  cookieName:
+    process.env.NODE_ENV === "production"
+      ? "__Host-psifi.x-csrf-token"
+      : "psifi.x-csrf-token",
   cookieOptions: {
+    path: "/", // Required for __Host- prefix
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // change this to lax for test production
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
   },
   getTokenFromRequest: (req) => req.headers["x-csrf-token"] as string,
 });
@@ -23,10 +27,15 @@ const csrfMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
   const headerToken = req.headers["x-csrf-token"] as string;
-  const cookieToken = req.cookies["__Host-psifi.x-csrf-token"]?.split("|")[0];
+  const cookieToken =
+    process.env.NODE_ENV === "production"
+      ? req.cookies["__Host-psifi.x-csrf-token"]?.split("|")[0]
+      : req.cookies["psifi.x-csrf-token"]?.split("|")[0];
 
   if (!headerToken || !cookieToken || headerToken !== cookieToken) {
     console.error("CSRF token mismatch");
+    console.log(headerToken, cookieToken);
+
     return res.status(403).json({ error: "CSRF token mismatch or missing" });
   }
 

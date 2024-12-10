@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from "express";
 import { Algorithm } from "jsonwebtoken";
-import { Types, Document } from "mongoose";
+import { Types, Document, ObjectId, Schema } from "mongoose";
 
 export interface userType extends Document {
   _id: Types.ObjectId;
@@ -29,7 +30,7 @@ export interface userType extends Document {
 }
 
 export interface userSession {
-  _id?: Types.ObjectId;
+  _id: any;
   firstname: string;
   lastname: string;
   username: string;
@@ -66,4 +67,63 @@ export interface CookieOptions {
   sameSite: "strict" | "lax" | "none";
   httpOnly: boolean;
   expires: Date;
+}
+
+export type RecurrenceType = "daily" | "weekly" | "monthly";
+export interface TaskType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any;
+  name: string;
+  description: string;
+  priority: number;
+  category: string;
+  expected_completion_time: string;
+  createdAt: Date;
+  completed: boolean;
+  onFocus: boolean;
+  completedAt: Date;
+  isRoutine: boolean;
+  recurrence: RecurrenceType;
+  duration?: number;
+}
+export interface TaskDocument extends Document {
+  _id: ObjectId;
+  name: string;
+  description: string;
+  priority: number;
+  category: string;
+  expected_completion_time: Date;
+  createdAt: Date;
+  completed: boolean;
+  duration: number;
+  completedAt: Date;
+  user: ObjectId;
+  isCounted: boolean;
+  onFocus: boolean;
+  isRoutine: boolean;
+  triggerTime: string;
+  recurrence: RecurrenceType;
+  nextTrigger: Date;
+  addTaskToUser(): Promise<void>;
+}
+
+export interface UserDocument extends Document {
+  firstName: string;
+  lastName: string;
+  userName: string;
+  google_profile: Array<any>;
+  appleProfile: Array<any>;
+  hash: string;
+  salt: string;
+  refreshToken: { value: string; version: number };
+  createdAt: Date;
+  tasks: Array<Schema.Types.ObjectId>;
+  taskCount: {
+    completed: number;
+    incomplete: number;
+    total: number;
+  };
+  fcmToken: { token: string; timestamp: Date };
+  timezone: string;
+  updateTaskCounts: () => Promise<void>;
 }

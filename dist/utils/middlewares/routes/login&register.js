@@ -136,7 +136,27 @@ const googleAuth = async (req, res, next) => {
         found.refreshToken = token.refreshToken;
         await found.save();
         const sessionWithCsrf = (0, csrf_csrf_1.addCsrfToSession)(req, res, G_user);
-        res.status(200).json({ success: true, userSession: sessionWithCsrf });
+        const sessionToken = sessionWithCsrf.auth_data.token;
+        const token1 = sessionToken.split(" ")[1];
+        res.cookie("token1", token1, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        });
+        res.cookie("token2", sessionWithCsrf.auth_data.csrf, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        });
+        res.cookie("token3", sessionWithCsrf.auth_data.refreshToken.value, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+        res.status(200).redirect(process.env.FRONTEND_URL || "");
     }
     catch (err) {
         next(err);
@@ -158,7 +178,24 @@ const appleAuth = async (req, res, next) => {
         found.refreshToken = token.refreshToken;
         await found.save();
         const sessionWithCsrf = (0, csrf_csrf_1.addCsrfToSession)(req, res, apple_user);
-        res.status(200).json({ success: true, userSession: sessionWithCsrf });
+        const sessionToken = sessionWithCsrf.auth_data.token;
+        const token1 = sessionToken.split(" ")[1];
+        res.cookie("token1", token1, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        });
+        res.cookie("token2", sessionWithCsrf.auth_data.csrf, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        });
+        res.cookie("token3", sessionWithCsrf.auth_data.refreshToken.value, {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        });
+        res.status(200).redirect(process.env.FRONTEND_URL || "");
     }
     catch (err) {
         next(err);
@@ -193,10 +230,20 @@ const refreshToken = async (req, res, next) => {
             verifyToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_PRIVATE_KEY || "");
         }
         catch (err) {
-            if (err instanceof jsonwebtoken_1.JsonWebTokenError) {
+            if (err instanceof jsonwebtoken_1.TokenExpiredError) {
+                verifyToken = jsonwebtoken_1.default.decode(token);
+                if (!verifyToken) {
+                    return res
+                        .status(401)
+                        .json({ message: "Invalid or malformed token" });
+                }
+            }
+            else if (err instanceof jsonwebtoken_1.JsonWebTokenError) {
                 return res.status(401).json({ message: "Invalid signature or token" });
             }
-            return res.status(400).json({ message: "Could not verify token" });
+            else {
+                return res.status(400).json({ message: "Could not verify token" });
+            }
         }
         if (!verifyToken) {
             return res.status(400).json({ message: "Could not verify token" });
@@ -209,20 +256,29 @@ const refreshToken = async (req, res, next) => {
             const expiry = Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
             await (0, authentication_1.blacklistToken)(currentUserToken, expiry);
             await (0, authentication_1.blacklistToken)(token, expiry);
-            console.log("token blacklisted");
         }
         const newVersion = currentVersion + 1;
-        const payload = {
-            sub: currentUser.id,
-            iat: Date.now() / 1000,
-            version: newVersion,
+        let userSession = {
+            _id: currentUser._id,
+            firstname: currentUser.firstName,
+            lastname: currentUser.lastName,
+            username: currentUser.userName,
+            auth_data: {
+                token: "",
+                expires: "",
+                refreshToken: { value: "", version: 0 },
+                csrf: "",
+            },
         };
-        const issuedToken = jsonwebtoken_1.default.sign(payload, process.env.RSA_PRIVATE_KEY || "", { expiresIn: "1d", algorithm: "RS256" });
-        const refreshToken = jsonwebtoken_1.default.sign(payload, process.env.RSA_PRIVATE_KEY || "", { algorithm: "RS256" });
-        currentUser.refreshToken.value = refreshToken;
+        const newAuthValues = (0, authentication_1.issueJWT)(userSession, newVersion);
+        currentUser.refreshToken = newAuthValues.refreshToken;
         currentUser.refreshToken.version = newVersion;
         await currentUser.save();
-        res.status(200).json({ token: issuedToken });
+        userSession.auth_data.token = newAuthValues.token;
+        userSession.auth_data.expires = newAuthValues.expires;
+        userSession.auth_data.refreshToken = newAuthValues.refreshToken;
+        userSession = (0, csrf_csrf_1.addCsrfToSession)(req, res, userSession);
+        return res.status(200).json({ success: true, userSession });
     }
     catch (err) {
         next(err);
@@ -252,7 +308,8 @@ const validateAuthentication = async (req, res, next) => {
         const authenticatedUser = await user_1.default.findById(verifyToken.sub);
         if (!authenticatedUser)
             return res.status(404).json({ message: "User not found" });
-        req.user = authenticatedUser;
+        req.user = (0, authentication_1.createUserSession)(authenticatedUser);
+        req.session.user = (0, authentication_1.createUserSession)(authenticatedUser);
         next();
     }
     catch (err) {
@@ -283,7 +340,9 @@ const logout = async (req, res, next) => {
             expires: new Date(0),
         };
         res.clearCookie("connect.sid", cookieOptions);
-        res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions);
+        process.env.NODE_ENV === "production"
+            ? res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions)
+            : res.clearCookie("psifi.x-csrf-token", cookieOptions);
         if (req.session) {
             req.session.destroy((err) => {
                 if (err) {

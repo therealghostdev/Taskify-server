@@ -4,10 +4,15 @@ import {
   issueJWT,
   validatePassword,
   blacklistToken,
+  createUserSession,
 } from "../../functions/authentication";
 import user from "../../../models/user";
 import { CookieOptions, userSession } from "../../types";
-import jsonwebtoken, { JwtPayload, JsonWebTokenError } from "jsonwebtoken";
+import jsonwebtoken, {
+  JwtPayload,
+  JsonWebTokenError,
+  TokenExpiredError,
+} from "jsonwebtoken";
 import dotenv from "dotenv";
 import { redis } from "../../../config/redis";
 import { addCsrfToSession } from "../../../config/csrf-csrf";
@@ -138,8 +143,31 @@ const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     await found.save();
 
     const sessionWithCsrf = addCsrfToSession(req, res, G_user);
+    const sessionToken = sessionWithCsrf.auth_data.token;
+    const token1 = sessionToken.split(" ")[1];
 
-    res.status(200).json({ success: true, userSession: sessionWithCsrf });
+    res.cookie("token1", token1, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.cookie("token2", sessionWithCsrf.auth_data.csrf, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.cookie("token3", sessionWithCsrf.auth_data.refreshToken.value, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(200).redirect(process.env.FRONTEND_URL || "");
   } catch (err) {
     next(err);
   }
@@ -166,7 +194,28 @@ const appleAuth = async (req: Request, res: Response, next: NextFunction) => {
     await found.save();
 
     const sessionWithCsrf = addCsrfToSession(req, res, apple_user);
-    res.status(200).json({ success: true, userSession: sessionWithCsrf });
+    const sessionToken = sessionWithCsrf.auth_data.token;
+    const token1 = sessionToken.split(" ")[1];
+
+    res.cookie("token1", token1, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
+
+    res.cookie("token2", sessionWithCsrf.auth_data.csrf, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
+
+    res.cookie("token3", sessionWithCsrf.auth_data.refreshToken.value, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
+
+    res.status(200).redirect(process.env.FRONTEND_URL || "");
   } catch (err) {
     next(err);
   }
@@ -217,10 +266,18 @@ const refreshToken = async (
         process.env.REFRESH_TOKEN_PRIVATE_KEY || ""
       ) as JwtPayload;
     } catch (err) {
-      if (err instanceof JsonWebTokenError) {
+      if (err instanceof TokenExpiredError) {
+        verifyToken = jsonwebtoken.decode(token) as JwtPayload;
+        if (!verifyToken) {
+          return res
+            .status(401)
+            .json({ message: "Invalid or malformed token" });
+        }
+      } else if (err instanceof JsonWebTokenError) {
         return res.status(401).json({ message: "Invalid signature or token" });
+      } else {
+        return res.status(400).json({ message: "Could not verify token" });
       }
-      return res.status(400).json({ message: "Could not verify token" });
     }
 
     if (!verifyToken) {
@@ -237,33 +294,36 @@ const refreshToken = async (
       const expiry = Math.floor(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await blacklistToken(currentUserToken, expiry);
       await blacklistToken(token, expiry);
-      console.log("token blacklisted");
     }
 
     const newVersion = currentVersion + 1;
-    const payload = {
-      sub: currentUser.id,
-      iat: Date.now() / 1000,
-      version: newVersion,
+
+    let userSession: userSession = {
+      _id: currentUser._id,
+      firstname: currentUser.firstName,
+      lastname: currentUser.lastName,
+      username: currentUser.userName,
+      auth_data: {
+        token: "",
+        expires: "",
+        refreshToken: { value: "", version: 0 },
+        csrf: "",
+      },
     };
-    const issuedToken = jsonwebtoken.sign(
-      payload,
-      process.env.RSA_PRIVATE_KEY || "",
-      { expiresIn: "1d", algorithm: "RS256" }
-    );
 
-    const refreshToken = jsonwebtoken.sign(
-      payload,
-      process.env.RSA_PRIVATE_KEY || "",
-      { algorithm: "RS256" }
-    );
+    const newAuthValues = issueJWT(userSession, newVersion);
 
-    currentUser.refreshToken.value = refreshToken;
+    currentUser.refreshToken = newAuthValues.refreshToken;
     currentUser.refreshToken.version = newVersion;
 
     await currentUser.save();
 
-    res.status(200).json({ token: issuedToken });
+    userSession.auth_data.token = newAuthValues.token;
+    userSession.auth_data.expires = newAuthValues.expires;
+    userSession.auth_data.refreshToken = newAuthValues.refreshToken;
+    userSession = addCsrfToSession(req, res, userSession);
+
+    return res.status(200).json({ success: true, userSession });
   } catch (err) {
     next(err);
   }
@@ -304,7 +364,9 @@ const validateAuthentication = async (
     if (!authenticatedUser)
       return res.status(404).json({ message: "User not found" });
 
-    req.user = authenticatedUser;
+    req.user = createUserSession(authenticatedUser);
+    req.session.user = createUserSession(authenticatedUser);
+
     next();
   } catch (err) {
     next(err);
@@ -341,7 +403,10 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
     };
 
     res.clearCookie("connect.sid", cookieOptions);
-    res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions);
+
+    process.env.NODE_ENV === "production"
+      ? res.clearCookie("__Host-psifi.x-csrf-token", cookieOptions)
+      : res.clearCookie("psifi.x-csrf-token", cookieOptions);
 
     if (req.session) {
       req.session.destroy((err) => {
