@@ -1,9 +1,10 @@
-version: '3'
+version: "3"
 services:
   taskify:
     image: therealghostdev/taskify:latest
     volumes:
       - "./:/usr/src/taskify"
+      - "./config/firebase/secret/taskify-29c1e-firebase-adminsdk-lnsvf-3b40d04243.json:/usr/src/taskify/config/firebase/secret/taskify-29c1e-firebase-adminsdk-lnsvf-3b40d04243.json"
     ports:
       - "3000:3000"
     depends_on:
@@ -13,6 +14,7 @@ services:
       MONGODB_URI: ${MONGODB_URI}
       REDIS_URL: ${REDIS_URL}
       NODE_ENV: development
+      GOOGLE_APPLICATION_CREDENTIALS: /usr/src/taskify/config/firebase/secret/taskify-29c1e-firebase-adminsdk-lnsvf-3b40d04243.json
 
   mongo:
     image: mongo:latest

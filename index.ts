@@ -40,6 +40,8 @@ async function main() {
     initFirebase();
     console.log("Firebase connected");
 
+    await import("./cronjobs/notifications");
+
     app.listen(port, () => {
       console.log(`[server]: Server is running at http://localhost:${port}`);
     });

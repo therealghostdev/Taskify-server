@@ -61,6 +61,7 @@ async function main() {
         console.log("Mongoose connection success");
         (0, firebase_1.initFirebase)();
         console.log("Firebase connected");
+        await Promise.resolve().then(() => __importStar(require("./cronjobs/notifications")));
         app.listen(port, () => {
             console.log(`[server]: Server is running at http://localhost:${port}`);
         });
